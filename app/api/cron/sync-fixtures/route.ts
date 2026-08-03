@@ -13,7 +13,15 @@ export async function GET(req: NextRequest) {
   const authError = cronAuthError(req);
   if (authError) return authError;
 
-  const fixtures = await getFixturesInWindow(48);
+  let fixtures;
+  try {
+    fixtures = await getFixturesInWindow(48);
+  } catch (err) {
+    return NextResponse.json(
+      { ok: false, fixturesSynced: 0, error: err instanceof Error ? err.message : String(err) },
+      { status: 502 }
+    );
+  }
   let upserted = 0;
 
   for (const f of fixtures) {

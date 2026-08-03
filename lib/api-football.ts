@@ -21,6 +21,13 @@ async function afFetch<T>(path: string, params: Record<string, string | number> 
     throw new Error(`API-Football ${path} failed: ${res.status} ${await res.text()}`);
   }
   const json = await res.json();
+  // API-Football returns HTTP 200 even for parameter/plan errors, with the
+  // problem described in `errors` (an array, or an object keyed by field)
+  // and an empty `response`. Surface that instead of silently returning [].
+  const hasErrors = Array.isArray(json.errors) ? json.errors.length > 0 : Object.keys(json.errors ?? {}).length > 0;
+  if (hasErrors) {
+    throw new Error(`API-Football ${path} returned errors: ${JSON.stringify(json.errors)}`);
+  }
   return json.response as T;
 }
 
