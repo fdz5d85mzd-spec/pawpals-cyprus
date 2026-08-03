@@ -42,7 +42,7 @@ export interface AFFixture {
     venue: { name: string | null };
     status: { short: string }; // "NS" not started | "FT" full time | "LIVE" etc.
   };
-  league: { id: number; season: number };
+  league: { id: number; season: number; name: string; country: string };
   teams: {
     home: { id: number; name: string };
     away: { id: number; name: string };
@@ -58,6 +58,24 @@ export async function getFixtureById(fixtureId: number): Promise<AFFixture | und
   return fixtures[0];
 }
 
+// Leagues Skorama tracks. `from`/`to` alone isn't a valid API-Football query
+// (it errors with "need another parameter") — every fixtures-by-date-range
+// call must also be scoped to a league. This also keeps request volume well
+// under the free tier's 100/day cap: an unscoped "every match on Earth"
+// query would blow through that budget in a single cron run.
+const TRACKED_LEAGUES = [
+  { id: 197, name: "Super League Ελλάδα" }, // Greek Super League
+];
+
+// Most European top-flight leagues (incl. the Greek Super League) run
+// Aug-May and are labeled by their start year, e.g. the 2026-27 season is
+// season=2026 until roughly July 2027.
+function currentSeasonYear(): number {
+  const now = new Date();
+  const month = now.getUTCMonth() + 1; // 1-12
+  return month >= 7 ? now.getUTCFullYear() : now.getUTCFullYear() - 1;
+}
+
 export async function getFixturesInWindow(hoursAhead = 24): Promise<AFFixture[]> {
   const now = new Date();
   const to = new Date(now.getTime() + hoursAhead * 3600 * 1000);
@@ -65,8 +83,14 @@ export async function getFixturesInWindow(hoursAhead = 24): Promise<AFFixture[]>
   // (up to 2) covered calendar days and filter precisely by kickoff below.
   const fromDate = now.toISOString().slice(0, 10);
   const toDate = to.toISOString().slice(0, 10);
+  const season = currentSeasonYear();
 
-  const fixtures = await afFetch<AFFixture[]>("/fixtures", { from: fromDate, to: toDate, timezone: "UTC" });
+  const perLeague = await Promise.all(
+    TRACKED_LEAGUES.map((league) =>
+      afFetch<AFFixture[]>("/fixtures", { league: league.id, season, from: fromDate, to: toDate, timezone: "UTC" })
+    )
+  );
+  const fixtures = perLeague.flat();
 
   return fixtures.filter((f) => {
     const kickoff = new Date(f.fixture.date).getTime();

@@ -27,8 +27,8 @@ export async function GET(req: NextRequest) {
   for (const f of fixtures) {
     await prisma.league.upsert({
       where: { id: f.league.id },
-      create: { id: f.league.id, name: "Unknown", country: "Unknown", season: f.league.season },
-      update: { season: f.league.season },
+      create: { id: f.league.id, name: f.league.name, country: f.league.country, season: f.league.season },
+      update: { season: f.league.season, name: f.league.name, country: f.league.country },
     });
 
     await prisma.team.upsert({
