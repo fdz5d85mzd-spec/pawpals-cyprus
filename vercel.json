@@ -1,0 +1,7 @@
+{
+  "crons": [
+    { "path": "/api/cron/sync-fixtures", "schedule": "0 6 * * *" },
+    { "path": "/api/cron/freeze-predictions", "schedule": "0 7 * * *" },
+    { "path": "/api/cron/settle-results", "schedule": "0 8 * * *" }
+  ]
+}

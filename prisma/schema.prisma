@@ -1,0 +1,215 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Auth (NextAuth Prisma adapter)
+// ---------------------------------------------------------------------------
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  passwordHash  String?
+
+  accounts      Account[]
+  sessions      Session[]
+  subscription  Subscription?
+
+  createdAt DateTime @default(now())
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ---------------------------------------------------------------------------
+// Billing
+// ---------------------------------------------------------------------------
+
+enum Plan {
+  FREE
+  PRO
+}
+
+model Subscription {
+  id                   String    @id @default(cuid())
+  userId               String    @unique
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan                 Plan      @default(FREE)
+  status               String    @default("inactive") // active | past_due | canceled | inactive
+  stripeCustomerId     String?   @unique
+  stripeSubscriptionId String?   @unique
+  currentPeriodEnd     DateTime?
+  updatedAt            DateTime  @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Football data cache (populated from API-Football, refreshed by the cron jobs)
+// ---------------------------------------------------------------------------
+
+model League {
+  id      Int      @id // API-Football league id
+  name    String
+  country String
+  season  Int
+  logoUrl String?
+  teams   Team[]
+  fixtures Fixture[]
+}
+
+model Team {
+  id            Int      @id // API-Football team id
+  name          String
+  shortName     String
+  logoUrl       String?
+  leagueId      Int
+  league        League   @relation(fields: [leagueId], references: [id])
+  leaguePos     Int?
+  avgGoalsFor   Float?
+  avgGoalsAgainst Float?
+  form          String[] @default([]) // ["W","D","L",...] most recent last
+  statsUpdatedAt DateTime?
+
+  keyPlayers    Player[]
+  homeFixtures  Fixture[] @relation("HomeTeam")
+  awayFixtures  Fixture[] @relation("AwayTeam")
+}
+
+model Player {
+  id       Int     @id // API-Football player id
+  teamId   Int
+  team     Team    @relation(fields: [teamId], references: [id])
+  name     String
+  role     String
+  goals    Int     @default(0)
+  apps     Int     @default(0)
+  status   String  @default("fit") // fit | doubtful | injured
+}
+
+enum FixtureStatus {
+  SCHEDULED
+  LIVE
+  FINISHED
+  POSTPONED
+  CANCELLED
+}
+
+model Fixture {
+  id         Int           @id // API-Football fixture id
+  leagueId   Int
+  league     League        @relation(fields: [leagueId], references: [id])
+  homeTeamId Int
+  homeTeam   Team          @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeamId Int
+  awayTeam   Team          @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  kickoff    DateTime
+  venue      String?
+  status     FixtureStatus @default(SCHEDULED)
+  homeGoals  Int?
+  awayGoals  Int?
+  htHomeGoals Int?
+  htAwayGoals Int?
+
+  prediction PredictionSnapshot?
+
+  @@index([kickoff])
+}
+
+// A prediction "frozen" ~24h before kickoff. Immutable once created — the
+// scheduler only ever inserts one snapshot per fixture (enforced by the
+// unique fixtureId).
+model PredictionSnapshot {
+  id               String    @id @default(cuid())
+  fixtureId        Int       @unique
+  fixture          Fixture   @relation(fields: [fixtureId], references: [id])
+  frozenAt         DateTime  @default(now())
+
+  lambdaHome       Float
+  lambdaAway       Float
+  winHome          Int
+  draw             Int
+  winAway          Int
+  doubleChance     Json
+  bttsYes          Int
+  ouLines          Json
+  scores           Json
+  asianHandicap    Json
+  htft             String
+  htftConfidence   Int
+  corners          Int
+  cornersOver95    Int
+  cards            Float
+  cardsOver45      Int
+  scorer           Json?
+  confidence       Int
+  matrix           Json
+
+  results          PredictionResult[]
+}
+
+enum Market {
+  ONE_X_TWO
+  DOUBLE_CHANCE
+  ASIAN_HANDICAP
+  HT_FT
+  OVER_UNDER_2_5
+  BTTS
+  CORRECT_SCORE
+}
+
+// One row per market per fixture, computed once the fixture is FINISHED and
+// the actual result has been fetched. This is what the accuracy tracker
+// aggregates over.
+model PredictionResult {
+  id           String    @id @default(cuid())
+  predictionId String
+  prediction   PredictionSnapshot @relation(fields: [predictionId], references: [id])
+  market       Market
+  predicted    String
+  predictedPct Int
+  actual       String
+  hit          Boolean
+  settledAt    DateTime  @default(now())
+
+  @@unique([predictionId, market])
+}
