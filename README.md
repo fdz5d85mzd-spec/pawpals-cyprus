@@ -1,9 +1,9 @@
-# Football Predictor
+# Skorama
 
 Στατιστικό μοντέλο πρόβλεψης ποδοσφαιρικών αγώνων (Poisson + διόρθωση
 Dixon-Coles) πάνω σε πραγματικά δεδομένα, με λογαριασμούς χρηστών και
-συνδρομή Free/Pro. Next.js 14 (App Router) + TypeScript + Tailwind,
-deploy-ready για Vercel.
+συνδρομή Free/Pro. Next.js (App Router) + TypeScript + Tailwind,
+deploy-ready για Vercel. Domain: [skorama.xyz](https://skorama.xyz).
 
 Το μαθηματικό μοντέλο (`lib/model.ts`) είναι πιστό port του αρχικού
 `football-predictor.jsx` prototype — `computeModel`/`buildMatrix`/`tauDC`

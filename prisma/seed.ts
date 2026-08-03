@@ -3,7 +3,7 @@
 // through Postgres + the real computeModel instead of being hardcoded in
 // the UI. Not meant for production; just lets you `npm run dev` and see
 // the app working end-to-end without a live API-Football/Stripe setup.
-import { PrismaClient, Market } from "@prisma/client";
+import { PrismaClient, Market, Prisma } from "@prisma/client";
 import { computeModel, type TeamStats } from "../lib/model";
 
 const prisma = new PrismaClient();
@@ -110,7 +110,7 @@ async function main() {
       cornersOver95: model.cornersOver95,
       cards: model.cards,
       cardsOver45: model.cardsOver45,
-      scorer: model.scorer ?? undefined,
+      scorer: model.scorer ? (model.scorer as unknown as Prisma.InputJsonObject) : Prisma.JsonNull,
       confidence: model.confidence,
       matrix: model.matrix,
     },

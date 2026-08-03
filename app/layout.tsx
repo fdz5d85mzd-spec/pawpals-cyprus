@@ -4,8 +4,9 @@ import { Nav } from "@/components/Nav";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Football Predictor",
+  title: "Skorama",
   description: "Στατιστικό μοντέλο πρόβλεψης ποδοσφαίρου — Poisson + Dixon-Coles.",
+  metadataBase: new URL("https://skorama.xyz"),
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
