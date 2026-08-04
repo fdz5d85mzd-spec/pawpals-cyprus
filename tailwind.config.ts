@@ -1,5 +1,8 @@
 import type { Config } from "tailwindcss";
 
+// Palette: bold yellow/black sports-site look (per user reference), swapped
+// in under the same token names so components didn't need touching —
+// `lime` is now the yellow accent, not green.
 const config: Config = {
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
@@ -8,19 +11,19 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        bg: "#080F0C",
-        surface: "#101F18",
-        surface2: "#152A20",
-        surface3: "#1B3527",
-        border: "#20402E",
-        lime: "#C6F17A",
-        limeDim: "#8FCB4A",
-        amber: "#F2B705",
-        blue: "#5B7FFF",
-        rose: "#E0665A",
-        ink: "#F3F6F1",
-        muted: "#8AA398",
-        dim: "#5D7266",
+        bg: "#0B0B0D",
+        surface: "#161618",
+        surface2: "#1E1E21",
+        surface3: "#28282C",
+        border: "#2E2E33",
+        lime: "#FFC800",
+        limeDim: "#D9A600",
+        amber: "#F2A900",
+        blue: "#E8E8EA",
+        rose: "#E23D3D",
+        ink: "#FAFAFA",
+        muted: "#A8A8AC",
+        dim: "#6B6B70",
       },
       fontFamily: {
         display: ["'Bricolage Grotesque'", "sans-serif"],
@@ -28,12 +31,12 @@ const config: Config = {
         mono: ["'IBM Plex Mono'", "monospace"],
       },
       backgroundImage: {
-        "glow-lime": "radial-gradient(circle at 50% 0%, rgba(198,241,122,0.16), transparent 60%)",
+        "glow-lime": "radial-gradient(circle at 50% 0%, rgba(255,200,0,0.18), transparent 60%)",
         "card-sheen": "linear-gradient(160deg, rgba(255,255,255,0.05), rgba(255,255,255,0) 40%)",
-        "fade-surface": "linear-gradient(180deg, rgba(16,31,24,0) 0%, #080F0C 100%)",
+        "fade-surface": "linear-gradient(180deg, rgba(11,11,13,0) 0%, #0B0B0D 100%)",
       },
       boxShadow: {
-        glow: "0 0 0 1px rgba(198,241,122,0.15), 0 8px 24px -8px rgba(198,241,122,0.25)",
+        glow: "0 0 0 1px rgba(255,200,0,0.2), 0 8px 24px -8px rgba(255,200,0,0.35)",
         card: "0 1px 0 rgba(255,255,255,0.04) inset, 0 12px 32px -16px rgba(0,0,0,0.6)",
         lift: "0 20px 40px -20px rgba(0,0,0,0.7)",
       },

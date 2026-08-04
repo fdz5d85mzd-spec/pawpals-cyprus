@@ -82,9 +82,9 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
       </div>
 
       <Eyebrow>Αποτέλεσμα (1Χ2)</Eyebrow>
-      <Bar label={home.name} value={model.winHome} color="#C6F17A" />
-      <Bar label="Ισοπαλία" value={model.draw} color="#5D7266" />
-      <Bar label={away.name} value={model.winAway} color="#5B7FFF" />
+      <Bar label={home.name} value={model.winHome} color="#FFC800" />
+      <Bar label="Ισοπαλία" value={model.draw} color="#6B6B70" />
+      <Bar label={away.name} value={model.winAway} color="#E8E8EA" />
 
       <ProGate isPro={isPro}>
         <div className="mt-6">

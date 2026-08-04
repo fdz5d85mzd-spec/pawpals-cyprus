@@ -38,10 +38,10 @@ export function ScoreHeatmap({
                     key={`${h}-${a}`}
                     className="h-8 flex items-center justify-center text-[9px] font-mono rounded-md transition-transform duration-150 hover:scale-110 hover:z-10"
                     style={{
-                      background: `rgba(198,241,122,${0.06 + intensity * 0.8})`,
-                      color: intensity > 0.5 ? "#080F0C" : "#8AA398",
+                      background: `rgba(255,200,0,${0.06 + intensity * 0.8})`,
+                      color: intensity > 0.5 ? "#0B0B0D" : "#A8A8AC",
                       fontWeight: intensity > 0.5 ? 700 : 400,
-                      boxShadow: intensity > 0.5 ? "0 0 12px rgba(198,241,122,0.35)" : "none",
+                      boxShadow: intensity > 0.5 ? "0 0 12px rgba(255,200,0,0.35)" : "none",
                     }}
                   >
                     {Math.round(p * 100)}

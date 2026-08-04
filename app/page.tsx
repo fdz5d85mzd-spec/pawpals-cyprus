@@ -15,27 +15,35 @@ export default async function TodayPage() {
 
   return (
     <div className="relative">
-      <div className="absolute inset-x-0 top-0 h-72 bg-glow-lime pointer-events-none" />
+      <div className="relative overflow-hidden bg-bg pb-14 pt-12">
+        <div
+          className="absolute -top-32 -right-24 w-96 h-96 bg-lime"
+          style={{ transform: "rotate(24deg)" }}
+        />
 
-      <div className="relative max-w-xl mx-auto px-5 pt-10 pb-8">
-        <div className="flex items-center gap-2 mb-3 animate-fade-up">
-          <Sigma size={14} className="text-lime" />
-          <span className="text-[10px] tracking-[0.2em] uppercase font-mono text-dim">
-            Μαθηματικό μοντέλο · 24ω πριν το ματς
-          </span>
+        <div className="relative max-w-xl mx-auto px-5">
+          <div className="flex items-center gap-2 mb-3 animate-fade-up">
+            <Sigma size={14} className="text-lime" />
+            <span className="text-[10px] tracking-[0.2em] uppercase font-mono text-dim">
+              Μαθηματικό μοντέλο · 24ω πριν το ματς
+            </span>
+          </div>
+          <h1
+            className="font-display text-[2.6rem] sm:text-5xl mb-3 leading-[1.05] font-extrabold text-ink uppercase tracking-tight animate-fade-up"
+            style={{ animationDelay: "60ms" }}
+          >
+            Οι αριθμοί
+            <br />
+            <span className="bg-lime text-bg px-2 inline-block -skew-x-6">δεν παίρνουν μέρος</span>
+          </h1>
+          <p className="text-sm mt-4 text-muted max-w-md animate-fade-up" style={{ animationDelay: "120ms" }}>
+            Κάθε πρόβλεψη προκύπτει από στατιστικό μοντέλο Poisson πάνω σε φόρμα, γκολ υπέρ/κατά και έδρα —
+            όχι από γνώμη ή οπαδική προκατάληψη.
+          </p>
         </div>
-        <h1
-          className="font-display text-[2.6rem] sm:text-5xl mb-3 leading-[1.05] font-extrabold text-ink tracking-tight animate-fade-up"
-          style={{ animationDelay: "60ms" }}
-        >
-          Οι αριθμοί
-          <br />
-          <span className="text-gradient">δεν παίρνουν μέρος.</span>
-        </h1>
-        <p className="text-sm mb-8 text-muted max-w-md animate-fade-up" style={{ animationDelay: "120ms" }}>
-          Κάθε πρόβλεψη προκύπτει από στατιστικό μοντέλο Poisson πάνω σε φόρμα, γκολ υπέρ/κατά και έδρα —
-          όχι από γνώμη ή οπαδική προκατάληψη.
-        </p>
+      </div>
+
+      <div className="relative max-w-xl mx-auto px-5 pt-8 pb-8">
 
         {fixtures.length === 0 && (
           <div className="card p-6 text-center animate-fade-up">
@@ -70,7 +78,9 @@ export default async function TodayPage() {
                     <div className="font-display text-lg text-ink">{f.homeTeam.name}</div>
                     {f.homeTeam.leaguePos && <div className="text-[10px] font-mono text-dim">#{f.homeTeam.leaguePos}</div>}
                   </div>
-                  <div className="font-display text-sm px-3 text-dim">vs</div>
+                  <div className="font-display text-[10px] font-extrabold px-2.5 py-1 bg-surface3 text-lime border border-lime/40 shrink-0">
+                    VS
+                  </div>
                   <div className="flex-1 text-center">
                     <div className="font-display text-lg text-ink">{f.awayTeam.name}</div>
                     {f.awayTeam.leaguePos && <div className="text-[10px] font-mono text-dim">#{f.awayTeam.leaguePos}</div>}

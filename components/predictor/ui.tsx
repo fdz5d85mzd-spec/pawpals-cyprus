@@ -3,7 +3,7 @@ import type { FormResult } from "@/lib/model";
 export function FormPill({ r }: { r: FormResult }) {
   const cls =
     r === "W"
-      ? "bg-lime text-bg shadow-[0_0_10px_rgba(198,241,122,0.5)]"
+      ? "bg-lime text-bg shadow-[0_0_10px_rgba(255,200,0,0.5)]"
       : r === "D"
       ? "bg-surface3 text-muted border border-border"
       : "bg-rose/90 text-bg";

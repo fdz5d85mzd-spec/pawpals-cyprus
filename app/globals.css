@@ -5,13 +5,13 @@
 @tailwind utilities;
 
 body {
-  background: #080f0c;
-  color: #f3f6f1;
+  background: #0b0b0d;
+  color: #fafafa;
 }
 
 ::selection {
-  background: rgba(198, 241, 122, 0.3);
-  color: #f3f6f1;
+  background: rgba(255, 200, 0, 0.35);
+  color: #0b0b0d;
 }
 
 .scrollbar-none {
@@ -24,23 +24,30 @@ body {
 
 @layer components {
   .card {
-    @apply relative rounded-2xl border border-border bg-surface bg-card-sheen shadow-card;
+    @apply relative rounded-lg border border-border bg-surface bg-card-sheen shadow-card overflow-hidden;
+  }
+  .card::before {
+    content: "";
+    @apply absolute top-0 left-0 right-0 h-[3px] bg-lime opacity-0 transition-opacity duration-200;
   }
 
   .card-interactive {
-    @apply card transition-all duration-200 hover:border-lime/40 hover:shadow-lift hover:-translate-y-0.5;
+    @apply card transition-all duration-200 hover:border-lime/50 hover:shadow-lift hover:-translate-y-0.5;
+  }
+  .card-interactive:hover::before {
+    @apply opacity-100;
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-1.5 rounded-full bg-lime px-4 py-2.5 text-xs font-mono font-bold text-bg shadow-glow transition-all duration-200 hover:brightness-110 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+    @apply inline-flex items-center justify-center gap-1.5 rounded-md bg-lime px-4 py-2.5 text-xs font-mono font-bold uppercase tracking-wide text-bg shadow-glow transition-all duration-200 hover:brightness-110 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-1.5 rounded-full border border-border bg-surface2 px-4 py-2.5 text-xs font-mono font-bold text-ink transition-all duration-200 hover:border-lime/40 hover:text-lime disabled:opacity-50 disabled:pointer-events-none;
+    @apply inline-flex items-center justify-center gap-1.5 rounded-md border border-border bg-surface2 px-4 py-2.5 text-xs font-mono font-bold uppercase tracking-wide text-ink transition-all duration-200 hover:border-lime/50 hover:text-lime disabled:opacity-50 disabled:pointer-events-none;
   }
 
   .input {
-    @apply w-full rounded-xl border border-border bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-dim transition-colors focus:outline-none focus:border-lime/50 focus:ring-1 focus:ring-lime/30;
+    @apply w-full rounded-md border border-border bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-dim transition-colors focus:outline-none focus:border-lime/50 focus:ring-1 focus:ring-lime/30;
   }
 
   .text-gradient {
