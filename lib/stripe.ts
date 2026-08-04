@@ -9,7 +9,10 @@ import Stripe from "stripe";
 // instead), which is Stripe's own recommended client for serverless
 // runtimes like Vercel functions.
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", {
-  apiVersion: "2024-06-20",
+  // The account has Managed Payments enabled, which Stripe only supports on
+  // API versions >= 2025-03-31 ("basil") — 2024-06-20 rejected every
+  // checkout session with StripeInvalidRequestError.
+  apiVersion: "2026-07-29.dahlia",
   httpClient: Stripe.createFetchHttpClient(),
   maxNetworkRetries: 2,
 });

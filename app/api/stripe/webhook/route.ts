@@ -13,6 +13,12 @@ async function upsertFromSubscription(sub: Stripe.Subscription) {
 
   const where = userId ? { userId } : { stripeCustomerId: customerId };
 
+  // current_period_end moved from the Subscription object onto each
+  // SubscriptionItem in newer API versions (part of flexible-billing
+  // support for multi-item subscriptions) — we only ever create
+  // single-item subscriptions, so the first item's period end is the one.
+  const currentPeriodEnd = sub.items.data[0]?.current_period_end;
+
   await prisma.subscription.upsert({
     where,
     create: {
@@ -21,13 +27,13 @@ async function upsertFromSubscription(sub: Stripe.Subscription) {
       status: sub.status,
       stripeCustomerId: customerId,
       stripeSubscriptionId: sub.id,
-      currentPeriodEnd: new Date(sub.current_period_end * 1000),
+      currentPeriodEnd: currentPeriodEnd ? new Date(currentPeriodEnd * 1000) : undefined,
     },
     update: {
       plan,
       status: sub.status,
       stripeSubscriptionId: sub.id,
-      currentPeriodEnd: new Date(sub.current_period_end * 1000),
+      currentPeriodEnd: currentPeriodEnd ? new Date(currentPeriodEnd * 1000) : undefined,
     },
   });
 }
