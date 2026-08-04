@@ -95,6 +95,7 @@ const TRACKED_LEAGUES = [
   { id: 61, name: "Ligue 1" }, // France
   { id: 253, name: "MLS" }, // USA/Canada, in-season Feb-Dec
   { id: 71, name: "Brasileirão" }, // Brazil, in-season Apr-Dec
+  { id: 10, name: "Friendlies" }, // international friendlies, year-round
 ];
 
 // Most European top-flight leagues (incl. the Greek Super League) run
