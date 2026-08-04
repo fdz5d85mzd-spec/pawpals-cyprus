@@ -50,7 +50,21 @@ export async function POST() {
     return NextResponse.json({ url: checkoutSession.url });
   } catch (err) {
     console.error("stripe checkout failed", err);
-    const message = err instanceof Error ? err.message : "Unknown error";
+    // Stripe's own error message ("An error occurred with our connection to
+    // Stripe") is generic on purpose — the useful bit is buried in
+    // type/code/detail (the underlying network cause, e.g. ETIMEDOUT vs
+    // ENOTFOUND). Surface all of it here since we can't easily hand the
+    // Vercel function logs to a non-technical user, but the Network tab is
+    // proven to work for that.
+    const stripeErr = err as { message?: string; type?: string; code?: string; detail?: unknown };
+    const detail =
+      stripeErr?.detail instanceof Error
+        ? stripeErr.detail.message
+        : typeof stripeErr?.detail === "string"
+        ? stripeErr.detail
+        : undefined;
+    const message =
+      [stripeErr?.type, stripeErr?.code, stripeErr?.message, detail].filter(Boolean).join(" | ") || "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

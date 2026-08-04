@@ -46,17 +46,17 @@ export default function PricingPage() {
   }
 
   return (
-    <div className="max-w-xl mx-auto px-5 pt-8 pb-16">
-      <div className="text-[10px] tracking-[0.2em] uppercase font-mono mb-2 text-dim animate-fade-up">Τιμές</div>
-      <h1 className="font-display text-4xl mb-8 font-extrabold text-ink tracking-tight animate-fade-up" style={{ animationDelay: "60ms" }}>
+    <div className="max-w-xl mx-auto px-5 pt-5 pb-16">
+      <div className="text-[10px] tracking-[0.2em] uppercase font-mono mb-1.5 text-dim animate-fade-up">Τιμές</div>
+      <h1 className="font-display text-2xl sm:text-4xl mb-4 font-extrabold text-ink tracking-tight animate-fade-up" style={{ animationDelay: "60ms" }}>
         Επίλεξε το πλάνο σου
       </h1>
 
-      <div className="grid grid-cols-1 gap-4">
-        <div className="card p-6 animate-fade-up" style={{ animationDelay: "120ms" }}>
-          <div className="text-[10px] uppercase tracking-wide font-mono mb-3 text-dim">Free</div>
-          <div className="font-display text-3xl mb-5 text-ink font-extrabold">0€</div>
-          <ul className="text-xs space-y-2.5 text-muted">
+      <div className="grid grid-cols-1 gap-3">
+        <div className="card p-5 animate-fade-up" style={{ animationDelay: "120ms" }}>
+          <div className="text-[10px] uppercase tracking-wide font-mono mb-2 text-dim">Free</div>
+          <div className="font-display text-3xl mb-3 text-ink font-extrabold">0€</div>
+          <ul className="text-xs space-y-2 text-muted">
             {FREE_FEATURES.map((f) => (
               <li key={f} className="flex items-start gap-2">
                 <Check size={14} className="text-dim mt-0.5 shrink-0" />
@@ -66,7 +66,7 @@ export default function PricingPage() {
           </ul>
         </div>
 
-        <div className="card p-6 relative overflow-hidden border-lime/50 animate-fade-up" style={{ animationDelay: "180ms" }}>
+        <div className="card p-5 relative overflow-hidden border-lime/50 animate-fade-up" style={{ animationDelay: "180ms" }}>
           <div className="absolute top-0 right-0 bg-lime text-bg text-[9px] font-bold font-mono px-3 py-1 rounded-bl-xl flex items-center gap-1">
             <Crown size={10} /> POPULAR
           </div>
