@@ -5,6 +5,45 @@
 @tailwind utilities;
 
 body {
-  background: #0a1712;
+  background: #080f0c;
   color: #f3f6f1;
+}
+
+::selection {
+  background: rgba(198, 241, 122, 0.3);
+  color: #f3f6f1;
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+@layer components {
+  .card {
+    @apply relative rounded-2xl border border-border bg-surface bg-card-sheen shadow-card;
+  }
+
+  .card-interactive {
+    @apply card transition-all duration-200 hover:border-lime/40 hover:shadow-lift hover:-translate-y-0.5;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-full bg-lime px-4 py-2.5 text-xs font-mono font-bold text-bg shadow-glow transition-all duration-200 hover:brightness-110 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-full border border-border bg-surface2 px-4 py-2.5 text-xs font-mono font-bold text-ink transition-all duration-200 hover:border-lime/40 hover:text-lime disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .input {
+    @apply w-full rounded-xl border border-border bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-dim transition-colors focus:outline-none focus:border-lime/50 focus:ring-1 focus:ring-lime/30;
+  }
+
+  .text-gradient {
+    @apply bg-gradient-to-br from-lime via-lime to-limeDim bg-clip-text text-transparent;
+  }
 }

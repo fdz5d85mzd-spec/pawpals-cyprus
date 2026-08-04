@@ -1,5 +1,6 @@
 import { Gauge } from "lucide-react";
 import { prisma } from "@/lib/db";
+import { Eyebrow } from "@/components/predictor/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -33,16 +34,18 @@ export default async function HistoryPage() {
   }
 
   return (
-    <div className="max-w-xl mx-auto px-5 pt-5 pb-16">
-      <div className="flex items-center gap-2 mb-1 mt-2">
-        <Gauge size={18} className="text-lime" />
+    <div className="max-w-xl mx-auto px-5 pt-8 pb-16">
+      <div className="flex items-center gap-2 mb-2 animate-fade-up">
+        <Gauge size={16} className="text-lime" />
         <span className="text-[10px] tracking-[0.2em] uppercase font-mono text-dim">Διαφάνεια μοντέλου</span>
       </div>
-      <h1 className="font-display text-3xl mb-4 font-bold text-ink">Πόσο σωστό ήταν;</h1>
+      <h1 className="font-display text-4xl mb-6 font-extrabold text-ink tracking-tight animate-fade-up" style={{ animationDelay: "60ms" }}>
+        Πόσο σωστό ήταν;
+      </h1>
 
-      <div className="rounded-2xl p-5 mb-6 flex items-center gap-4 bg-surface border border-border">
-        <div className="font-display text-4xl font-mono text-lime">{accuracy}%</div>
-        <div className="text-xs text-muted">
+      <div className="card p-6 mb-8 flex items-center gap-5 animate-fade-up" style={{ animationDelay: "120ms" }}>
+        <div className="font-display text-5xl font-mono text-gradient">{accuracy}%</div>
+        <div className="text-xs text-muted leading-relaxed">
           Επιτυχείς προβλέψεις σε {total} τελειωμένους αγώνες/αγορές ({correct}/{total}). Ενημερώνεται αυτόματα
           μόλις τελειώνει κάθε αγώνας.
         </div>
@@ -50,17 +53,15 @@ export default async function HistoryPage() {
 
       {byMarket.size > 0 && (
         <>
-          <div className="text-[10px] tracking-[0.18em] uppercase font-mono mb-2 text-dim">Ανά αγορά</div>
-          <div className="grid grid-cols-2 gap-2 mb-6">
+          <Eyebrow>Ανά αγορά</Eyebrow>
+          <div className="grid grid-cols-2 gap-2 mb-8">
             {Array.from(byMarket.entries()).map(([market, { total, hits }]) => (
-              <div key={market} className="rounded-xl py-3 px-3 bg-surface border border-border">
-                <div className="text-[9px] uppercase tracking-wide font-mono mb-1 text-dim">
+              <div key={market} className="card p-3.5">
+                <div className="text-[9px] uppercase tracking-wide font-mono mb-1.5 text-dim">
                   {MARKET_LABELS[market] ?? market}
                 </div>
-                <div className="text-base font-bold font-mono text-lime">
-                  {Math.round((hits / total) * 100)}%
-                </div>
-                <div className="text-[10px] mt-0.5 text-muted">
+                <div className="text-lg font-bold font-mono text-lime">{Math.round((hits / total) * 100)}%</div>
+                <div className="text-[10px] mt-1 text-muted">
                   {hits}/{total}
                 </div>
               </div>
@@ -69,34 +70,34 @@ export default async function HistoryPage() {
         </>
       )}
 
-      <div className="text-[10px] tracking-[0.18em] uppercase font-mono mb-2 text-dim">
-        Τελευταίες προβλέψεις vs αποτέλεσμα
-      </div>
+      <Eyebrow>Τελευταίες προβλέψεις vs αποτέλεσμα</Eyebrow>
       {results.length === 0 && (
-        <div className="rounded-xl p-4 text-xs text-dim border border-dashed border-border">
-          Δεν υπάρχουν ακόμα τελειωμένοι αγώνες με παγωμένη πρόβλεψη.
+        <div className="card p-6 text-center">
+          <div className="text-xs text-dim">Δεν υπάρχουν ακόμα τελειωμένοι αγώνες με παγωμένη πρόβλεψη.</div>
         </div>
       )}
-      {results.map((r) => (
-        <div key={r.id} className="flex items-center justify-between py-3 px-3 rounded-lg mb-1.5 bg-surface">
-          <div>
-            <div className="text-xs font-medium text-ink">
-              {r.prediction.fixture.homeTeam.name} – {r.prediction.fixture.awayTeam.name}
+      <div className="space-y-2">
+        {results.map((r) => (
+          <div key={r.id} className="card-interactive flex items-center justify-between py-3 px-4">
+            <div>
+              <div className="text-xs font-medium text-ink">
+                {r.prediction.fixture.homeTeam.name} – {r.prediction.fixture.awayTeam.name}
+              </div>
+              <div className="text-[10px] font-mono mt-0.5 text-dim">
+                {MARKET_LABELS[r.market] ?? r.market} · πρόβλεψη: {r.predicted} ({r.predictedPct}%) · τελικό:{" "}
+                {r.actual}
+              </div>
             </div>
-            <div className="text-[10px] font-mono mt-0.5 text-dim">
-              {MARKET_LABELS[r.market] ?? r.market} · πρόβλεψη: {r.predicted} ({r.predictedPct}%) · τελικό:{" "}
-              {r.actual}
-            </div>
+            <span
+              className={`text-[10px] px-2.5 py-1 rounded-full font-bold font-mono shrink-0 ml-2 ${
+                r.hit ? "bg-lime/15 text-lime" : "bg-rose/15 text-rose"
+              }`}
+            >
+              {r.hit ? "✓ Σωστό" : "✕ Λάθος"}
+            </span>
           </div>
-          <span
-            className={`text-[10px] px-2 py-0.5 rounded-full font-bold font-mono shrink-0 ml-2 ${
-              r.hit ? "bg-[#173226] text-lime" : "bg-[#3A1712] text-[#E0665A]"
-            }`}
-          >
-            {r.hit ? "✓ Σωστό" : "✕ Λάθος"}
-          </span>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }

@@ -14,11 +14,7 @@ export function ManageBillingButton() {
   }
 
   return (
-    <button
-      onClick={openPortal}
-      disabled={loading}
-      className="w-full text-xs font-mono font-bold px-4 py-2.5 rounded-full bg-lime text-bg disabled:opacity-60"
-    >
+    <button onClick={openPortal} disabled={loading} className="btn-primary w-full">
       {loading ? "..." : "Διαχείριση συνδρομής"}
     </button>
   );

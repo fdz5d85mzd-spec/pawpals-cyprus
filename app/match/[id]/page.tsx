@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Clock } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { presentPrediction, hoursUntil } from "@/lib/present";
 import { getCurrentPlan } from "@/lib/plan";
 import { Eyebrow, Bar, Stat, Row, FormPill, ProGate } from "@/components/predictor/ui";
 import { ScoreHeatmap } from "@/components/predictor/ScoreHeatmap";
+import { Comments } from "@/components/predictor/Comments";
 import type { FormResult } from "@/lib/model";
 
 export const dynamic = "force-dynamic";
@@ -15,12 +16,18 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
   const fixtureId = Number(id);
   if (Number.isNaN(fixtureId)) notFound();
 
-  const [fixture, plan] = await Promise.all([
+  const [fixture, plan, comments] = await Promise.all([
     prisma.fixture.findUnique({
       where: { id: fixtureId },
       include: { homeTeam: { include: { keyPlayers: true } }, awayTeam: { include: { keyPlayers: true } }, prediction: true },
     }),
     getCurrentPlan(),
+    prisma.matchComment.findMany({
+      where: { fixtureId },
+      include: { user: true },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+    }),
   ]);
 
   if (!fixture || !fixture.prediction) notFound();
@@ -33,38 +40,41 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
 
   return (
     <div className="max-w-xl mx-auto px-5 py-6 pb-16">
-      <Link href="/" className="flex items-center gap-1 text-xs mb-5 text-muted">
+      <Link href="/" className="inline-flex items-center gap-1 text-xs mb-6 text-muted hover:text-ink transition-colors">
         <ChevronLeft size={14} /> Πίσω
       </Link>
 
-      <div className="flex items-center gap-1.5 text-[10px] font-mono mb-3 text-amber">
+      <div className="flex items-center gap-1.5 text-[10px] font-mono mb-4 text-amber">
+        <Clock size={11} />
         <span>
           Κλείδωμα πρόγνωσης σε {hrs}ω{fixture.venue ? ` · ${fixture.venue}` : ""}
         </span>
       </div>
 
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex-1 text-center">
-          <div className="font-display text-xl text-ink">{home.shortName}</div>
-          <div className="flex justify-center gap-1 mt-2">
-            {(home.form as FormResult[]).map((r, i) => (
-              <FormPill key={i} r={r} />
-            ))}
+      <div className="card p-5 mb-6">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex-1 text-center">
+            <div className="font-display text-xl text-ink font-bold">{home.shortName}</div>
+            <div className="flex justify-center gap-1.5 mt-2.5">
+              {(home.form as FormResult[]).map((r, i) => (
+                <FormPill key={i} r={r} />
+              ))}
+            </div>
+          </div>
+          <div className="font-display text-lg px-3 text-dim">—</div>
+          <div className="flex-1 text-center">
+            <div className="font-display text-xl text-ink font-bold">{away.shortName}</div>
+            <div className="flex justify-center gap-1.5 mt-2.5">
+              {(away.form as FormResult[]).map((r, i) => (
+                <FormPill key={i} r={r} />
+              ))}
+            </div>
           </div>
         </div>
-        <div className="font-display text-lg px-2 text-dim">—</div>
-        <div className="flex-1 text-center">
-          <div className="font-display text-xl text-ink">{away.shortName}</div>
-          <div className="flex justify-center gap-1 mt-2">
-            {(away.form as FormResult[]).map((r, i) => (
-              <FormPill key={i} r={r} />
-            ))}
-          </div>
+        <div className="flex justify-center gap-8 text-[10px] font-mono pt-3 border-t border-border/60 text-dim">
+          <span>λ {model.lambdaHome.toFixed(2)}</span>
+          <span>λ {model.lambdaAway.toFixed(2)}</span>
         </div>
-      </div>
-      <div className="flex justify-center gap-8 text-[10px] font-mono mb-6 text-dim">
-        <span>λ {model.lambdaHome.toFixed(2)}</span>
-        <span>λ {model.lambdaAway.toFixed(2)}</span>
       </div>
 
       <div className="mb-6">
@@ -145,7 +155,7 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
           <Eyebrow>Βασικοί παίχτες</Eyebrow>
         </div>
         {[...home.keyPlayers, ...away.keyPlayers].map((p) => (
-          <div key={p.id} className="flex items-center justify-between py-2 px-3 rounded-lg mb-1.5 bg-surface">
+          <div key={p.id} className="card-interactive flex items-center justify-between py-2.5 px-4 mb-1.5">
             <div>
               <div className="text-xs font-medium text-ink">{p.name}</div>
               <div className="text-[10px] text-muted">
@@ -153,12 +163,8 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
               </div>
             </div>
             <span
-              className={`text-[10px] px-2 py-0.5 rounded-full font-bold font-mono ${
-                p.status === "fit"
-                  ? "bg-[#173226] text-lime"
-                  : p.status === "doubtful"
-                  ? "bg-[#3A2E12] text-amber"
-                  : "bg-[#3A1712] text-[#E0665A]"
+              className={`text-[10px] px-2.5 py-1 rounded-full font-bold font-mono ${
+                p.status === "fit" ? "bg-lime/15 text-lime" : p.status === "doubtful" ? "bg-amber/15 text-amber" : "bg-rose/15 text-rose"
               }`}
             >
               {p.status === "fit" ? "Διαθέσιμος" : p.status === "doubtful" ? "Αμφίβολος" : "Τραυματίας"}
@@ -166,6 +172,16 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
           </div>
         ))}
       </ProGate>
+
+      <Comments
+        fixtureId={fixture.id}
+        initialComments={comments.map((c) => ({
+          id: c.id,
+          body: c.body,
+          createdAt: c.createdAt.toISOString(),
+          userName: c.user.name ?? c.user.email,
+        }))}
+      />
     </div>
   );
 }

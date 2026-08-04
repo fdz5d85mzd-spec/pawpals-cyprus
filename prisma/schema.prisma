@@ -23,6 +23,9 @@ model User {
   accounts      Account[]
   sessions      Session[]
   subscription  Subscription?
+  comments      MatchComment[]
+  reviews       SiteReview[]
+  suggestions   Suggestion[]
 
   createdAt DateTime @default(now())
 }
@@ -151,8 +154,63 @@ model Fixture {
   htAwayGoals Int?
 
   prediction PredictionSnapshot?
+  comments   MatchComment[]
 
   @@index([kickoff])
+}
+
+// ---------------------------------------------------------------------------
+// Community: per-match comments, site reviews, suggestions, helpdesk
+// ---------------------------------------------------------------------------
+
+model MatchComment {
+  id        String   @id @default(cuid())
+  fixtureId Int
+  fixture   Fixture  @relation(fields: [fixtureId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  body      String   @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([fixtureId, createdAt])
+}
+
+// Site-wide star rating, shown on a public /reviews page (average + list).
+model SiteReview {
+  id        String   @id @default(cuid())
+  userId    String   @unique // one review per user, editable
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating    Int // 1-5
+  body      String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum SuggestionStatus {
+  OPEN
+  PLANNED
+  DONE
+  DECLINED
+}
+
+model Suggestion {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  body      String           @db.Text
+  status    SuggestionStatus @default(OPEN)
+  createdAt DateTime         @default(now())
+}
+
+// Contact-form submissions. No auth required — anyone can reach support.
+model HelpdeskMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  body      String   @db.Text
+  resolved  Boolean  @default(false)
+  createdAt DateTime @default(now())
 }
 
 // A prediction "frozen" ~24h before kickoff. Immutable once created — the

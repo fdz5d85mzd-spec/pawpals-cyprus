@@ -13,9 +13,9 @@ export default async function AccountPage() {
   const subscription = await prisma.subscription.findUnique({ where: { userId: session.user.id } });
 
   return (
-    <div className="max-w-xs mx-auto px-5 py-12">
-      <h1 className="font-display text-2xl mb-6 font-bold text-ink">Ο λογαριασμός μου</h1>
-      <div className="rounded-2xl p-5 bg-surface border border-border mb-4">
+    <div className="max-w-xs mx-auto px-5 py-16">
+      <h1 className="font-display text-3xl mb-8 font-extrabold text-ink tracking-tight">Ο λογαριασμός μου</h1>
+      <div className="card p-5 mb-4">
         <div className="text-xs text-muted mb-1">Email</div>
         <div className="text-sm text-ink mb-4">{session.user.email}</div>
         <div className="text-xs text-muted mb-1">Πλάνο</div>

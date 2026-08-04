@@ -27,16 +27,16 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="max-w-xs mx-auto px-5 py-12">
-      <h1 className="font-display text-2xl mb-6 font-bold text-ink">Σύνδεση</h1>
-      <form onSubmit={onSubmit} className="space-y-3">
+    <div className="max-w-xs mx-auto px-5 py-16">
+      <h1 className="font-display text-3xl mb-8 font-extrabold text-ink tracking-tight">Σύνδεση</h1>
+      <form onSubmit={onSubmit} className="card p-5 space-y-3">
         <input
           type="email"
           required
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full text-sm px-3 py-2.5 rounded-lg bg-surface border border-border text-ink"
+          className="input"
         />
         <input
           type="password"
@@ -44,14 +44,10 @@ export default function LoginPage() {
           placeholder="Κωδικός"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full text-sm px-3 py-2.5 rounded-lg bg-surface border border-border text-ink"
+          className="input"
         />
-        {error && <div className="text-xs text-[#E0665A]">{error}</div>}
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full text-xs font-mono font-bold px-4 py-2.5 rounded-full bg-lime text-bg disabled:opacity-60"
-        >
+        {error && <div className="text-xs text-rose">{error}</div>}
+        <button type="submit" disabled={loading} className="btn-primary w-full">
           {loading ? "..." : "Σύνδεση"}
         </button>
       </form>

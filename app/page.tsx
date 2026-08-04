@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Sigma, Clock, ArrowRight } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { presentPrediction, hoursUntil } from "@/lib/present";
 
@@ -13,77 +14,97 @@ export default async function TodayPage() {
   });
 
   return (
-    <div className="max-w-xl mx-auto px-5 py-8">
-      <div className="text-[10px] tracking-[0.2em] uppercase font-mono mb-1 text-dim">
-        Μαθηματικό μοντέλο · 24ω πριν το ματς
-      </div>
-      <h1 className="font-display text-4xl mb-1 leading-tight font-bold text-ink">
-        Οι αριθμοί
-        <br />
-        δεν παίρνουν μέρος.
-      </h1>
-      <p className="text-xs mb-6 text-muted">
-        Κάθε πρόβλεψη προκύπτει από στατιστικό μοντέλο Poisson πάνω σε φόρμα, γκολ υπέρ/κατά και έδρα — όχι
-        από γνώμη ή οπαδική προκατάληψη.
-      </p>
+    <div className="relative">
+      <div className="absolute inset-x-0 top-0 h-72 bg-glow-lime pointer-events-none" />
 
-      {fixtures.length === 0 && (
-        <div className="rounded-xl p-4 text-xs text-dim border border-dashed border-border">
-          Καμία παγωμένη πρόβλεψη αυτή τη στιγμή. Ο scheduler παγώνει προβλέψεις 24ω πριν κάθε αγώνα.
+      <div className="relative max-w-xl mx-auto px-5 pt-10 pb-8">
+        <div className="flex items-center gap-2 mb-3 animate-fade-up">
+          <Sigma size={14} className="text-lime" />
+          <span className="text-[10px] tracking-[0.2em] uppercase font-mono text-dim">
+            Μαθηματικό μοντέλο · 24ω πριν το ματς
+          </span>
         </div>
-      )}
+        <h1
+          className="font-display text-[2.6rem] sm:text-5xl mb-3 leading-[1.05] font-extrabold text-ink tracking-tight animate-fade-up"
+          style={{ animationDelay: "60ms" }}
+        >
+          Οι αριθμοί
+          <br />
+          <span className="text-gradient">δεν παίρνουν μέρος.</span>
+        </h1>
+        <p className="text-sm mb-8 text-muted max-w-md animate-fade-up" style={{ animationDelay: "120ms" }}>
+          Κάθε πρόβλεψη προκύπτει από στατιστικό μοντέλο Poisson πάνω σε φόρμα, γκολ υπέρ/κατά και έδρα —
+          όχι από γνώμη ή οπαδική προκατάληψη.
+        </p>
 
-      {fixtures.map((f) => {
-        if (!f.prediction) return null;
-        const model = presentPrediction(f.prediction);
-        const hrs = hoursUntil(f.kickoff);
-        return (
-          <Link
-            key={f.id}
-            href={`/match/${f.id}`}
-            className="block w-full text-left rounded-2xl mb-4 p-5 bg-surface border border-border"
-          >
-            <div className="flex items-center gap-1.5 text-[10px] font-mono mb-3 text-amber">
-              <span>Έναρξη σε {hrs}ω{f.venue ? ` · ${f.venue}` : ""}</span>
-            </div>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex-1 text-center">
-                <div className="font-display text-lg text-ink">{f.homeTeam.name}</div>
-                {f.homeTeam.leaguePos && <div className="text-[10px] font-mono text-dim">#{f.homeTeam.leaguePos}</div>}
-              </div>
-              <div className="font-display text-sm px-2 text-dim">vs</div>
-              <div className="flex-1 text-center">
-                <div className="font-display text-lg text-ink">{f.awayTeam.name}</div>
-                {f.awayTeam.leaguePos && <div className="text-[10px] font-mono text-dim">#{f.awayTeam.leaguePos}</div>}
-              </div>
-            </div>
-            <div className="flex justify-center gap-6 text-xs font-mono mb-2 text-muted">
-              <span>
-                1 <b className="text-ink">{model.winHome}%</b>
-              </span>
-              <span>
-                X <b className="text-ink">{model.draw}%</b>
-              </span>
-              <span>
-                2 <b className="text-ink">{model.winAway}%</b>
-              </span>
-            </div>
-            <div className="flex justify-center gap-4 text-[10px] font-mono text-dim">
-              <span>
-                Σκορ {model.scores[0].h}-{model.scores[0].a}
-              </span>
-              <span>O2.5 {model.ouLines[1].over}%</span>
-              <span>GG {model.bttsYes}%</span>
-              <span>ΗΜ/ΤΑ {model.htft}</span>
-            </div>
-          </Link>
-        );
-      })}
+        {fixtures.length === 0 && (
+          <div className="card p-6 text-center animate-fade-up">
+            <div className="text-sm text-ink font-medium mb-1">Καμία παγωμένη πρόβλεψη αυτή τη στιγμή</div>
+            <div className="text-xs text-dim">Ο scheduler παγώνει προβλέψεις 24ω πριν κάθε αγώνα.</div>
+          </div>
+        )}
 
-      <div className="mt-6 rounded-xl p-4 text-[11px] leading-relaxed border border-dashed border-border text-dim">
-        <b className="text-lime">Κινητήρας.</b> Ένας κοινός πίνακας πιθανοτήτων Poisson τροφοδοτεί όλες τις αγορές
-        — 1Χ2, Διπλή Ευκαιρία, Ασιατικό Χάντικαπ, ΗΜ/ΤΑ, Over/Under, BTTS, Ακριβές Σκορ, Σκόρερ. Κόρνερ/Κάρτες
-        μένουν σε ξεχωριστό μοντέλο (δεν προκύπτουν από γκολ).
+        <div className="space-y-4">
+          {fixtures.map((f, i) => {
+            if (!f.prediction) return null;
+            const model = presentPrediction(f.prediction);
+            const hrs = hoursUntil(f.kickoff);
+            return (
+              <Link
+                key={f.id}
+                href={`/match/${f.id}`}
+                className="card-interactive group block w-full text-left p-5 animate-fade-up"
+                style={{ animationDelay: `${160 + i * 60}ms` }}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-1.5 text-[10px] font-mono text-amber">
+                    <Clock size={11} />
+                    <span>
+                      Έναρξη σε {hrs}ω{f.venue ? ` · ${f.venue}` : ""}
+                    </span>
+                  </div>
+                  <ArrowRight size={14} className="text-dim group-hover:text-lime group-hover:translate-x-0.5 transition-all" />
+                </div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex-1 text-center">
+                    <div className="font-display text-lg text-ink">{f.homeTeam.name}</div>
+                    {f.homeTeam.leaguePos && <div className="text-[10px] font-mono text-dim">#{f.homeTeam.leaguePos}</div>}
+                  </div>
+                  <div className="font-display text-sm px-3 text-dim">vs</div>
+                  <div className="flex-1 text-center">
+                    <div className="font-display text-lg text-ink">{f.awayTeam.name}</div>
+                    {f.awayTeam.leaguePos && <div className="text-[10px] font-mono text-dim">#{f.awayTeam.leaguePos}</div>}
+                  </div>
+                </div>
+                <div className="flex justify-center gap-6 text-xs font-mono mb-3 text-muted">
+                  <span>
+                    1 <b className="text-ink">{model.winHome}%</b>
+                  </span>
+                  <span>
+                    X <b className="text-ink">{model.draw}%</b>
+                  </span>
+                  <span>
+                    2 <b className="text-ink">{model.winAway}%</b>
+                  </span>
+                </div>
+                <div className="flex justify-center gap-4 text-[10px] font-mono text-dim pt-3 border-t border-border/60">
+                  <span>
+                    Σκορ {model.scores[0].h}-{model.scores[0].a}
+                  </span>
+                  <span>O2.5 {model.ouLines[1].over}%</span>
+                  <span>GG {model.bttsYes}%</span>
+                  <span>ΗΜ/ΤΑ {model.htft}</span>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+
+        <div className="mt-8 card p-5 text-[11px] leading-relaxed text-dim">
+          <b className="text-lime">Κινητήρας.</b> Ένας κοινός πίνακας πιθανοτήτων Poisson τροφοδοτεί όλες τις
+          αγορές — 1Χ2, Διπλή Ευκαιρία, Ασιατικό Χάντικαπ, ΗΜ/ΤΑ, Over/Under, BTTS, Ακριβές Σκορ, Σκόρερ.
+          Κόρνερ/Κάρτες μένουν σε ξεχωριστό μοντέλο (δεν προκύπτουν από γκολ).
+        </div>
       </div>
     </div>
   );
