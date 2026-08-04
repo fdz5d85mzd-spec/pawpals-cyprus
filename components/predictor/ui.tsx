@@ -1,4 +1,5 @@
 import type { FormResult } from "@/lib/model";
+import { Link } from "@/i18n/navigation";
 
 export function FormPill({ r }: { r: FormResult }) {
   const cls =
@@ -70,9 +71,9 @@ export function ProGate({ isPro, children }: { isPro: boolean; children: React.R
     <div className="relative">
       <div className="pointer-events-none select-none blur-[3px] opacity-50">{children}</div>
       <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-transparent via-bg/40 to-bg/80">
-        <a href="/pricing" className="btn-primary">
+        <Link href="/pricing" className="btn-primary">
           Ξεκλείδωσε με Pro
-        </a>
+        </Link>
       </div>
     </div>
   );

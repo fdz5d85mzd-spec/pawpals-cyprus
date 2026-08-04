@@ -1,4 +1,5 @@
 import { FileText } from "lucide-react";
+import { Link } from "@/i18n/navigation";
 
 export const metadata = { title: "Όροι Χρήσης — Skorama" };
 
@@ -64,9 +65,9 @@ export default function TermsPage() {
         <Section title="6. Επικοινωνία">
           <p>
             Για οποιαδήποτε ερώτηση σχετικά με τους όρους χρήσης, επικοινώνησε μαζί μας μέσω της σελίδας{" "}
-            <a href="/help" className="text-lime font-bold">
+            <Link href="/help" className="text-lime font-bold">
               Υποστήριξη
-            </a>
+            </Link>
             .
           </p>
         </Section>

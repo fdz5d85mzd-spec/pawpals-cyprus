@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { Eyebrow } from "@/components/predictor/ui";
 import { ReviewForm } from "@/components/ReviewForm";
+import { Link } from "@/i18n/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -52,9 +53,9 @@ export default async function ReviewsPage() {
         </div>
       ) : (
         <div className="card p-4 mb-8 text-xs text-muted">
-          <a href="/login" className="text-lime font-bold">
+          <Link href="/login" className="text-lime font-bold">
             Συνδέσου
-          </a>{" "}
+          </Link>{" "}
           για να αφήσεις αξιολόγηση.
         </div>
       )}

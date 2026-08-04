@@ -2,26 +2,20 @@
 
 import { useState } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link, useRouter } from "@/i18n/navigation";
 import { Check, Crown } from "lucide-react";
 import { PromoRedeemForm } from "@/components/PromoRedeemForm";
-
-const FREE_FEATURES = ["Αποτέλεσμα 1Χ2 για όλους τους αγώνες σε 24ω", "Ιστορικό & ακρίβεια μοντέλου", "Αξιολογήσεις & εισηγήσεις"];
-const PRO_FEATURES = [
-  "Όλα του Free, plus:",
-  "Διπλή ευκαιρία, Ασιατικό χάντικαπ, ΗΜ/ΤΑ",
-  "Over/Under όλες οι γραμμές, BTTS",
-  "Ακριβές σκορ top-3, πρόταση σκόρερ",
-  "Κόρνερ/Κάρτες, confidence score",
-  "Όλα τα πρωταθλήματα",
-];
 
 export default function PricingPage() {
   const { data: session } = useSession();
   const router = useRouter();
+  const t = useTranslations("pricing");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const freeFeatures = t.raw("freeFeatures") as string[];
+  const proFeatures = t.raw("proFeatures") as string[];
 
   async function upgrade() {
     if (!session) {
@@ -34,12 +28,12 @@ export default function PricingPage() {
       const res = await fetch("/api/stripe/checkout", { method: "POST" });
       const data = await res.json();
       if (!res.ok || !data.url) {
-        setError(data.error ?? "Κάτι πήγε στραβά, δοκίμασε ξανά.");
+        setError(data.error ?? t("genericError"));
         return;
       }
       window.location.href = data.url;
     } catch {
-      setError("Κάτι πήγε στραβά, δοκίμασε ξανά.");
+      setError(t("genericError"));
     } finally {
       setLoading(false);
     }
@@ -47,17 +41,17 @@ export default function PricingPage() {
 
   return (
     <div className="max-w-xl mx-auto px-5 pt-5 pb-16">
-      <div className="text-[10px] tracking-[0.2em] uppercase font-mono mb-1.5 text-dim animate-fade-up">Τιμές</div>
+      <div className="text-[10px] tracking-[0.2em] uppercase font-mono mb-1.5 text-dim animate-fade-up">{t("kicker")}</div>
       <h1 className="font-display text-2xl sm:text-4xl mb-4 font-extrabold text-ink tracking-tight animate-fade-up" style={{ animationDelay: "60ms" }}>
-        Επίλεξε το πλάνο σου
+        {t("title")}
       </h1>
 
       <div className="grid grid-cols-1 gap-3">
         <div className="card p-5 animate-fade-up" style={{ animationDelay: "120ms" }}>
-          <div className="text-[10px] uppercase tracking-wide font-mono mb-2 text-dim">Free</div>
+          <div className="text-[10px] uppercase tracking-wide font-mono mb-2 text-dim">{t("free")}</div>
           <div className="font-display text-3xl mb-3 text-ink font-extrabold">0€</div>
           <ul className="text-xs space-y-2 text-muted">
-            {FREE_FEATURES.map((f) => (
+            {freeFeatures.map((f) => (
               <li key={f} className="flex items-start gap-2">
                 <Check size={14} className="text-dim mt-0.5 shrink-0" />
                 {f}
@@ -68,14 +62,14 @@ export default function PricingPage() {
 
         <div className="card p-5 relative overflow-hidden border-lime/50 animate-fade-up" style={{ animationDelay: "180ms" }}>
           <div className="absolute top-0 right-0 bg-lime text-bg text-[9px] font-bold font-mono px-3 py-1 rounded-bl-xl flex items-center gap-1">
-            <Crown size={10} /> POPULAR
+            <Crown size={10} /> {t("popular")}
           </div>
-          <div className="text-[10px] uppercase tracking-wide font-mono mb-3 text-lime">Pro</div>
+          <div className="text-[10px] uppercase tracking-wide font-mono mb-3 text-lime">{t("pro")}</div>
           <div className="font-display text-3xl mb-5 text-ink font-extrabold">
-            6,99€<span className="text-sm text-muted font-normal">/μήνα</span>
+            6,99€<span className="text-sm text-muted font-normal">{t("perMonth")}</span>
           </div>
           <ul className="text-xs space-y-2.5 mb-6 text-muted">
-            {PRO_FEATURES.map((f) => (
+            {proFeatures.map((f) => (
               <li key={f} className="flex items-start gap-2">
                 <Check size={14} className="text-lime mt-0.5 shrink-0" />
                 {f}
@@ -83,17 +77,17 @@ export default function PricingPage() {
             ))}
           </ul>
           <button onClick={upgrade} disabled={loading} className="btn-primary w-full">
-            {loading ? "..." : "Αναβάθμιση σε Pro"}
+            {loading ? t("upgradeLoading") : t("upgradeButton")}
           </button>
           {error && <div className="mt-2 text-[11px] text-red-400">{error}</div>}
 
           <div className="mt-4 pt-4 border-t border-border/60">
-            <div className="text-[10px] text-muted mb-2">Έχεις promo code αντί για κάρτα;</div>
+            <div className="text-[10px] text-muted mb-2">{t("promoQuestion")}</div>
             {session ? (
               <PromoRedeemForm />
             ) : (
               <Link href="/login" className="text-xs text-lime font-bold">
-                Συνδέσου για να το χρησιμοποιήσεις
+                {t("promoLoginPrompt")}
               </Link>
             )}
           </div>
@@ -101,12 +95,10 @@ export default function PricingPage() {
       </div>
 
       <p className="mt-8 text-[11px] leading-relaxed text-dim">
-        Το Skorama είναι εργαλείο στατιστικής ανάλυσης, όχι υπηρεσία στοιχηματισμού. Δεν παρέχει εγγυημένα
-        κέρδη· οι πιθανότητες προκύπτουν από μαθηματικό μοντέλο πάνω σε ιστορικά δεδομένα. Με την εγγραφή
-        αποδέχεσαι τους{" "}
-        <a href="/terms" className="text-lime font-bold">
-          Όρους Χρήσης
-        </a>
+        {t("legalNotice")}{" "}
+        <Link href="/terms" className="text-lime font-bold">
+          {t("termsLink")}
+        </Link>
         .
       </p>
     </div>

@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { MessageCircle } from "lucide-react";
 import { Eyebrow } from "./ui";
+import { Link, useRouter } from "@/i18n/navigation";
 
 export interface CommentItem {
   id: string;
@@ -73,9 +73,9 @@ export function Comments({ fixtureId, initialComments }: { fixtureId: number; in
         </form>
       ) : (
         <div className="card p-4 mb-4 text-xs text-muted">
-          <a href="/login" className="text-lime font-bold">
+          <Link href="/login" className="text-lime font-bold">
             Συνδέσου
-          </a>{" "}
+          </Link>{" "}
           για να σχολιάσεις αυτόν τον αγώνα.
         </div>
       )}

@@ -1,5 +1,6 @@
-import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { Sigma, Clock, ArrowRight } from "lucide-react";
+import { Link } from "@/i18n/navigation";
 import { prisma } from "@/lib/db";
 import { presentPrediction, hoursUntil } from "@/lib/present";
 import { PickOfDay } from "@/components/predictor/PickOfDay";
@@ -8,15 +9,21 @@ import { TopPicks, type TopPickItem } from "@/components/predictor/TopPicks";
 import { NewsFeed } from "@/components/predictor/NewsFeed";
 import { getLatestSportsNews } from "@/lib/news";
 
-function pickLabelFor(model: { winHome: number; draw: number; winAway: number }, homeName: string, awayName: string) {
+function pickLabelFor(
+  model: { winHome: number; draw: number; winAway: number },
+  homeName: string,
+  awayName: string,
+  drawLabel: string
+) {
   if (model.winHome >= model.draw && model.winHome >= model.winAway) return { label: homeName, pct: model.winHome };
   if (model.winAway >= model.draw && model.winAway >= model.winHome) return { label: awayName, pct: model.winAway };
-  return { label: "Ισοπαλία", pct: model.draw };
+  return { label: drawLabel, pct: model.draw };
 }
 
 export const dynamic = "force-dynamic";
 
 export default async function TodayPage() {
+  const t = await getTranslations("home");
   const [fixtures, news] = await Promise.all([
     prisma.fixture.findMany({
       where: { kickoff: { gte: new Date() }, prediction: { isNot: null } },
@@ -36,7 +43,7 @@ export default async function TodayPage() {
   const topPicks: TopPickItem[] = byConfidence
     .slice(1, 4)
     .map(({ fixture: f, model }) => {
-      const p = pickLabelFor(model, f.homeTeam.name, f.awayTeam.name);
+      const p = pickLabelFor(model, f.homeTeam.name, f.awayTeam.name, t("draw"));
       return { fixtureId: f.id, homeName: f.homeTeam.name, awayName: f.awayTeam.name, pickLabel: p.label, pct: p.pct };
     });
 
@@ -51,21 +58,18 @@ export default async function TodayPage() {
         <div className="relative max-w-6xl mx-auto px-5">
           <div className="flex items-center gap-2 mb-3 animate-fade-up">
             <Sigma size={14} className="text-lime" />
-            <span className="text-[10px] tracking-[0.2em] uppercase font-mono text-dim">
-              Μαθηματικό μοντέλο · 24ω πριν το ματς
-            </span>
+            <span className="text-[10px] tracking-[0.2em] uppercase font-mono text-dim">{t("kicker")}</span>
           </div>
           <h1
             className="font-display text-[2.6rem] sm:text-5xl mb-3 leading-[1.05] font-extrabold text-ink uppercase tracking-tight animate-fade-up"
             style={{ animationDelay: "60ms" }}
           >
-            Οι αριθμοί
+            {t("titleLine1")}
             <br />
-            <span className="bg-lime text-bg px-2 inline-block -skew-x-6">δεν λένε ψέματα</span>
+            <span className="bg-lime text-bg px-2 inline-block -skew-x-6">{t("titleHighlight")}</span>
           </h1>
           <p className="text-sm mt-4 text-muted max-w-md animate-fade-up" style={{ animationDelay: "120ms" }}>
-            Κάθε πρόβλεψη προκύπτει από στατιστικό μοντέλο Poisson πάνω σε φόρμα, γκολ υπέρ/κατά και έδρα —
-            όχι από γνώμη ή οπαδική προκατάληψη.
+            {t("subtitle")}
           </p>
         </div>
       </div>
@@ -74,8 +78,8 @@ export default async function TodayPage() {
         <div>
           {fixtures.length === 0 && (
             <div className="card p-6 text-center animate-fade-up">
-              <div className="text-sm text-ink font-medium mb-1">Καμία παγωμένη πρόβλεψη αυτή τη στιγμή</div>
-              <div className="text-xs text-dim">Ο scheduler παγώνει προβλέψεις 24ω πριν κάθε αγώνα.</div>
+              <div className="text-sm text-ink font-medium mb-1">{t("emptyTitle")}</div>
+              <div className="text-xs text-dim">{t("emptySubtitle")}</div>
             </div>
           )}
 
@@ -109,7 +113,8 @@ export default async function TodayPage() {
                     <div className="flex items-center gap-1.5 text-[10px] font-mono text-amber">
                       <Clock size={11} />
                       <span>
-                        Έναρξη σε {hrs}ω{f.venue ? ` · ${f.venue}` : ""}
+                        {t("startsIn", { hours: hrs })}
+                        {f.venue ? ` · ${f.venue}` : ""}
                       </span>
                     </div>
                     <ArrowRight size={14} className="text-dim group-hover:text-lime group-hover:translate-x-0.5 transition-all" />
@@ -140,7 +145,7 @@ export default async function TodayPage() {
                   </div>
                   <div className="flex justify-center gap-4 text-[10px] font-mono text-dim pt-3 border-t border-border/60">
                     <span>
-                      Σκορ {model.scores[0].h}-{model.scores[0].a}
+                      {t("score")} {model.scores[0].h}-{model.scores[0].a}
                     </span>
                     <span>O2.5 {model.ouLines[1].over}%</span>
                     <span>GG {model.bttsYes}%</span>
@@ -152,9 +157,7 @@ export default async function TodayPage() {
           </div>
 
           <div className="mt-8 card p-5 text-[11px] leading-relaxed text-dim">
-            <b className="text-lime">Κινητήρας.</b> Ένας κοινός πίνακας πιθανοτήτων Poisson τροφοδοτεί όλες τις
-            αγορές — 1Χ2, Διπλή Ευκαιρία, Ασιατικό Χάντικαπ, ΗΜ/ΤΑ, Over/Under, BTTS, Ακριβές Σκορ, Σκόρερ.
-            Κόρνερ/Κάρτες μένουν σε ξεχωριστό μοντέλο (δεν προκύπτουν από γκολ).
+            <b className="text-lime">{t("engineTitle")}</b> {t("engineBody")}
           </div>
         </div>
 

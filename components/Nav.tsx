@@ -1,23 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
+import { useTranslations, useLocale } from "next-intl";
 import { Menu, X } from "lucide-react";
-
-const LINKS = [
-  { href: "/", label: "Σήμερα" },
-  { href: "/standings", label: "Βαθμολογίες" },
-  { href: "/history", label: "Ιστορικό" },
-  { href: "/reviews", label: "Κριτικές" },
-  { href: "/pricing", label: "Τιμές" },
-];
+import { Link, usePathname } from "@/i18n/navigation";
+import { routing } from "@/i18n/routing";
 
 export function Nav() {
   const { data: session } = useSession();
   const pathname = usePathname();
+  const t = useTranslations("nav");
+  const locale = useLocale();
   const [open, setOpen] = useState(false);
+
+  const LINKS = [
+    { href: "/", label: t("today") },
+    { href: "/standings", label: t("standings") },
+    { href: "/history", label: t("history") },
+    { href: "/reviews", label: t("reviews") },
+    { href: "/pricing", label: t("pricing") },
+  ] as const;
 
   return (
     <header className="sticky top-0 z-40 border-b-2 border-lime bg-bg">
@@ -50,22 +53,25 @@ export function Nav() {
         </nav>
 
         <div className="flex items-center gap-3 shrink-0">
-          <div className="hidden sm:block text-xs font-mono">
-            {session ? (
-              <button onClick={() => signOut()} className="text-muted hover:text-rose transition-colors">
-                Έξοδος
-              </button>
-            ) : (
-              <Link href="/login" className="btn-primary !px-3 !py-1.5">
-                Σύνδεση
-              </Link>
-            )}
+          <div className="hidden sm:flex items-center gap-3">
+            <LanguageSwitcher locale={locale} pathname={pathname} />
+            <div className="text-xs font-mono">
+              {session ? (
+                <button onClick={() => signOut()} className="text-muted hover:text-rose transition-colors">
+                  {t("logout")}
+                </button>
+              ) : (
+                <Link href="/login" className="btn-primary !px-3 !py-1.5">
+                  {t("login")}
+                </Link>
+              )}
+            </div>
           </div>
 
           <button
             onClick={() => setOpen((v) => !v)}
             className="sm:hidden text-ink p-1"
-            aria-label={open ? "Κλείσιμο μενού" : "Άνοιγμα μενού"}
+            aria-label={open ? t("closeMenu") : t("openMenu")}
           >
             {open ? <X size={22} /> : <Menu size={22} />}
           </button>
@@ -89,7 +95,7 @@ export function Nav() {
               </Link>
             );
           })}
-          <div className="pt-3 mt-1">
+          <div className="flex items-center justify-between pt-3 mt-1">
             {session ? (
               <button
                 onClick={() => {
@@ -98,16 +104,37 @@ export function Nav() {
                 }}
                 className="text-sm font-bold uppercase tracking-wide text-muted hover:text-rose transition-colors"
               >
-                Έξοδος
+                {t("logout")}
               </button>
             ) : (
               <Link href="/login" onClick={() => setOpen(false)} className="btn-primary inline-block !px-4 !py-2 text-sm">
-                Σύνδεση
+                {t("login")}
               </Link>
             )}
+            <LanguageSwitcher locale={locale} pathname={pathname} />
           </div>
         </nav>
       )}
     </header>
   );
+
+  // Kept local to Nav — it's the only place a language switcher shows.
+  function LanguageSwitcher({ locale: current, pathname: path }: { locale: string; pathname: string }) {
+    return (
+      <div className="flex items-center gap-1 text-[10px] font-mono font-bold">
+        {routing.locales.map((loc) => (
+          <Link
+            key={loc}
+            href={path}
+            locale={loc}
+            className={`px-1.5 py-1 uppercase transition-colors ${
+              loc === current ? "text-lime" : "text-dim hover:text-ink"
+            }`}
+          >
+            {loc}
+          </Link>
+        ))}
+      </div>
+    );
+  }
 }

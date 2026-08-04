@@ -1,29 +1,33 @@
-import Link from "next/link";
-
-const COLUMNS = [
-  {
-    title: "Προϊόν",
-    links: [
-      { href: "/", label: "Σήμερα" },
-      { href: "/history", label: "Ιστορικό & Ακρίβεια" },
-      { href: "/pricing", label: "Τιμές" },
-    ],
-  },
-  {
-    title: "Κοινότητα",
-    links: [
-      { href: "/reviews", label: "Αξιολογήσεις" },
-      { href: "/suggestions", label: "Εισηγήσεις" },
-      { href: "/help", label: "Υποστήριξη" },
-    ],
-  },
-  {
-    title: "Νομικά",
-    links: [{ href: "/terms", label: "Όροι Χρήσης" }],
-  },
-];
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 
 export function Footer() {
+  const t = useTranslations("footer");
+  const nav = useTranslations("nav");
+
+  const COLUMNS = [
+    {
+      title: t("product"),
+      links: [
+        { href: "/", label: nav("today") },
+        { href: "/history", label: t("accuracyHistory") },
+        { href: "/pricing", label: nav("pricing") },
+      ],
+    },
+    {
+      title: t("community"),
+      links: [
+        { href: "/reviews", label: nav("reviews") },
+        { href: "/suggestions", label: t("suggestions") },
+        { href: "/help", label: t("support") },
+      ],
+    },
+    {
+      title: t("legal"),
+      links: [{ href: "/terms", label: t("terms") }],
+    },
+  ] as const;
+
   return (
     <footer className="mt-16 border-t border-border/60 bg-fade-surface">
       <div className="max-w-xl mx-auto px-5 py-10">
@@ -48,7 +52,7 @@ export function Footer() {
             S
           </span>
           <span className="text-[10px] text-dim font-mono">
-            Skorama © {new Date().getFullYear()} · Εργαλείο στατιστικής ανάλυσης, όχι υπηρεσία στοιχηματισμού.
+            Skorama © {new Date().getFullYear()} · {t("tagline")}
           </span>
         </div>
       </div>

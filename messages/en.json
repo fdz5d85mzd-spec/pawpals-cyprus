@@ -1,0 +1,64 @@
+{
+  "nav": {
+    "today": "Today",
+    "standings": "Standings",
+    "history": "History",
+    "reviews": "Reviews",
+    "pricing": "Pricing",
+    "login": "Log in",
+    "logout": "Log out",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
+  "footer": {
+    "product": "Product",
+    "community": "Community",
+    "legal": "Legal",
+    "accuracyHistory": "History & Accuracy",
+    "suggestions": "Suggestions",
+    "support": "Support",
+    "terms": "Terms of Use",
+    "tagline": "A statistical analysis tool, not a betting service."
+  },
+  "home": {
+    "kicker": "Mathematical model · 24h before kickoff",
+    "titleLine1": "The numbers",
+    "titleHighlight": "don't lie",
+    "subtitle": "Every prediction comes from a Poisson statistical model built on form, goals for/against, and home advantage — not opinion or fan bias.",
+    "emptyTitle": "No frozen predictions right now",
+    "emptySubtitle": "The scheduler freezes predictions 24h before each match.",
+    "startsIn": "Kicks off in {hours}h",
+    "draw": "Draw",
+    "score": "Score",
+    "engineTitle": "Engine.",
+    "engineBody": "A single Poisson probability matrix feeds every market — 1X2, Double Chance, Asian Handicap, HT/FT, Over/Under, BTTS, Correct Score, Scorer. Corners/Cards use a separate model (they don't come from goals)."
+  },
+  "pricing": {
+    "kicker": "Pricing",
+    "title": "Choose your plan",
+    "free": "Free",
+    "pro": "Pro",
+    "popular": "POPULAR",
+    "perMonth": "/month",
+    "freeFeatures": [
+      "1X2 result for every match, 24h ahead",
+      "History & model accuracy",
+      "Reviews & suggestions"
+    ],
+    "proFeatures": [
+      "Everything in Free, plus:",
+      "Double Chance, Asian Handicap, HT/FT",
+      "Over/Under all lines, BTTS",
+      "Correct score top-3, scorer pick",
+      "Corners/Cards, confidence score",
+      "Every league"
+    ],
+    "upgradeButton": "Upgrade to Pro",
+    "upgradeLoading": "...",
+    "genericError": "Something went wrong, try again.",
+    "promoQuestion": "Have a promo code instead of a card?",
+    "promoLoginPrompt": "Log in to use it",
+    "legalNotice": "Skorama is a statistical analysis tool, not a betting service. It offers no guaranteed profits — probabilities come from a mathematical model built on historical data. By signing up you accept the",
+    "termsLink": "Terms of Use"
+  }
+}
