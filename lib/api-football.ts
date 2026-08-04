@@ -96,6 +96,12 @@ const TRACKED_LEAGUES = [
   { id: 253, name: "MLS" }, // USA/Canada, in-season Feb-Dec
   { id: 71, name: "Brasileirão" }, // Brazil, in-season Apr-Dec
   { id: 10, name: "Friendlies" }, // international friendlies, year-round
+  { id: 174, name: "Bulgaria Cup" },
+  { id: 172, name: "Bulgaria First League" }, // in-season since mid-July
+  { id: 656, name: "Bulgaria Super Cup" },
+  { id: 237, name: "Russia Cup" },
+  { id: 236, name: "Russia First League" }, // in-season since mid-July
+  { id: 235, name: "Russia Premier League" }, // in-season since late July
 ];
 
 // Most European top-flight leagues (incl. the Greek Super League) run
