@@ -21,6 +21,7 @@ export default function PricingPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function upgrade() {
     if (!session) {
@@ -28,10 +29,20 @@ export default function PricingPage() {
       return;
     }
     setLoading(true);
-    const res = await fetch("/api/stripe/checkout", { method: "POST" });
-    const data = await res.json();
-    setLoading(false);
-    if (data.url) window.location.href = data.url;
+    setError(null);
+    try {
+      const res = await fetch("/api/stripe/checkout", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok || !data.url) {
+        setError(data.error ?? "Κάτι πήγε στραβά, δοκίμασε ξανά.");
+        return;
+      }
+      window.location.href = data.url;
+    } catch {
+      setError("Κάτι πήγε στραβά, δοκίμασε ξανά.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -74,6 +85,7 @@ export default function PricingPage() {
           <button onClick={upgrade} disabled={loading} className="btn-primary w-full">
             {loading ? "..." : "Αναβάθμιση σε Pro"}
           </button>
+          {error && <div className="mt-2 text-[11px] text-red-400">{error}</div>}
 
           <div className="mt-4 pt-4 border-t border-border/60">
             <div className="text-[10px] text-muted mb-2">Έχεις promo code αντί για κάρτα;</div>
