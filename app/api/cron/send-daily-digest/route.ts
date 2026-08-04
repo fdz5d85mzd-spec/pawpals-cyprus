@@ -20,6 +20,10 @@ export async function GET(req: NextRequest) {
   const authError = cronAuthError(req);
   if (authError) return authError;
 
+  if (!process.env.RESEND_API_KEY) {
+    return NextResponse.json({ ok: false, error: "RESEND_API_KEY is not set" }, { status: 500 });
+  }
+
   const fixtures = await prisma.fixture.findMany({
     where: { kickoff: { gte: new Date() }, prediction: { isNot: null } },
     include: { homeTeam: true, awayTeam: true, prediction: true },
