@@ -96,6 +96,8 @@ const TRACKED_LEAGUES = [
   { id: 253, name: "MLS" }, // USA/Canada, in-season Feb-Dec
   { id: 71, name: "Brasileirão" }, // Brazil, in-season Apr-Dec
   { id: 10, name: "Friendlies" }, // international friendlies, year-round
+  { id: 2, name: "UEFA Champions League" }, // qualifying rounds in progress
+  { id: 848, name: "UEFA Europa Conference League" }, // qualifying rounds in progress
   { id: 174, name: "Bulgaria Cup" },
   { id: 172, name: "Bulgaria First League" }, // in-season since mid-July
   { id: 656, name: "Bulgaria Super Cup" },
