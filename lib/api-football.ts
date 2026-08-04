@@ -60,24 +60,45 @@ export async function getFixtureById(fixtureId: number): Promise<AFFixture | und
 
 // Leagues Skorama tracks. `from`/`to` alone isn't a valid API-Football query
 // (it errors with "need another parameter") — every fixtures-by-date-range
-// call must also be scoped to a league. A single league (e.g. just the
-// Greek Super League) often has zero fixtures in any given 48h window
-// between matchdays, so we track a handful of the busiest European
-// competitions — with a Pro API-Football plan (7,500 req/day) this is
-// well within budget.
+// call must also be scoped to a league, so we can't just ask for "every
+// match on Earth". Literally tracking API-Football's full catalog (1000+
+// competitions incl. reserve/youth/amateur) would blow the daily request
+// budget in a single run and likely time out the cron function.
+//
+// Instead: all the major Aug-May European leagues (idle outside their
+// season) plus leagues on other calendars that are in-season right now
+// (MLS, Brazil, Argentina, Mexico, Japan, South Korea run roughly
+// Feb/Mar-Nov) — so there's usually something to show year-round.
 const TRACKED_LEAGUES = [
-  { id: 197, name: "Super League Ελλάδα" }, // Greek Super League
-  { id: 39, name: "Premier League" },
-  { id: 140, name: "La Liga" },
-  { id: 135, name: "Serie A" },
-  { id: 78, name: "Bundesliga" },
-  { id: 61, name: "Ligue 1" },
+  { id: 197, name: "Super League Ελλάδα" }, // Greece
+  { id: 39, name: "Premier League" }, // England
+  { id: 40, name: "Championship" }, // England 2nd tier
+  { id: 140, name: "La Liga" }, // Spain
+  { id: 135, name: "Serie A" }, // Italy
+  { id: 78, name: "Bundesliga" }, // Germany
+  { id: 61, name: "Ligue 1" }, // France
+  { id: 88, name: "Eredivisie" }, // Netherlands
+  { id: 94, name: "Primeira Liga" }, // Portugal
+  { id: 144, name: "Jupiler Pro League" }, // Belgium
+  { id: 203, name: "Süper Lig" }, // Turkey
+  { id: 179, name: "Scottish Premiership" }, // Scotland
   { id: 2, name: "UEFA Champions League" },
+  { id: 3, name: "UEFA Europa League" },
+  { id: 253, name: "MLS" }, // USA/Canada, Feb-Dec
+  { id: 71, name: "Brasileirão" }, // Brazil, Apr-Dec
+  { id: 128, name: "Liga Profesional Argentina" }, // Argentina
+  { id: 262, name: "Liga MX" }, // Mexico
+  { id: 98, name: "J1 League" }, // Japan, Feb-Dec
+  { id: 292, name: "K League 1" }, // South Korea, Feb-Nov
 ];
 
 // Most European top-flight leagues (incl. the Greek Super League) run
 // Aug-May and are labeled by their start year, e.g. the 2026-27 season is
-// season=2026 until roughly July 2027.
+// season=2026 until roughly July 2027. Calendar-year leagues (MLS, Brazil,
+// Argentina, Mexico, Japan, South Korea) are actually labeled by the
+// current calendar year instead — this heuristic gets those wrong for a
+// few months a year (roughly Jan-Jun), which just means sync-fixtures
+// finds nothing for that specific league until the estimate lines back up.
 function currentSeasonYear(): number {
   const now = new Date();
   const month = now.getUTCMonth() + 1; // 1-12
