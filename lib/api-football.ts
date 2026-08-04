@@ -60,11 +60,19 @@ export async function getFixtureById(fixtureId: number): Promise<AFFixture | und
 
 // Leagues Skorama tracks. `from`/`to` alone isn't a valid API-Football query
 // (it errors with "need another parameter") — every fixtures-by-date-range
-// call must also be scoped to a league. This also keeps request volume well
-// under the free tier's 100/day cap: an unscoped "every match on Earth"
-// query would blow through that budget in a single cron run.
+// call must also be scoped to a league. A single league (e.g. just the
+// Greek Super League) often has zero fixtures in any given 48h window
+// between matchdays, so we track a handful of the busiest European
+// competitions — with a Pro API-Football plan (7,500 req/day) this is
+// well within budget.
 const TRACKED_LEAGUES = [
   { id: 197, name: "Super League Ελλάδα" }, // Greek Super League
+  { id: 39, name: "Premier League" },
+  { id: 140, name: "La Liga" },
+  { id: 135, name: "Serie A" },
+  { id: 78, name: "Bundesliga" },
+  { id: 61, name: "Ligue 1" },
+  { id: 2, name: "UEFA Champions League" },
 ];
 
 // Most European top-flight leagues (incl. the Greek Super League) run
