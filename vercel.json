@@ -3,6 +3,7 @@
     { "path": "/api/cron/sync-fixtures", "schedule": "0 6 * * *" },
     { "path": "/api/cron/sync-standings", "schedule": "30 6 * * *" },
     { "path": "/api/cron/freeze-predictions", "schedule": "0 7 * * *" },
-    { "path": "/api/cron/settle-results", "schedule": "0 8 * * *" }
+    { "path": "/api/cron/settle-results", "schedule": "0 8 * * *" },
+    { "path": "/api/cron/send-daily-digest", "schedule": "15 8 * * *" }
   ]
 }

@@ -30,3 +30,19 @@ export function getTodaysFootballHistory(date: Date = new Date()): HistoryFact |
   const day = date.getUTCDate();
   return FOOTBALL_HISTORY.find((f) => f.month === month && f.day === day);
 }
+
+// Evergreen, non-dated trivia shown when today has no verified "on this
+// day" entry — kept to facts confirmed against well-established rules/
+// history rather than guessed, same accuracy bar as FOOTBALL_HISTORY.
+export const GENERAL_FACTS: string[] = [
+  "Η επίσημη μπάλα ποδοσφαίρου ζυγίζει 410-450 γραμμάρια και έχει περίμετρο 68-70 εκατοστά, σύμφωνα με τους κανονισμούς της FIFA.",
+  "Ο κανόνας του οφσάιντ πήρε τη σημερινή του βασική μορφή το 1925, όταν άλλαξε από 3 σε 2 τον απαιτούμενο αριθμό αντίπαλων παικτών πιο κοντά στην τέρμα γραμμή.",
+  "Ένα κανονικό γήπεδο ποδοσφαίρου έχει μήκος 90-120 μέτρα και πλάτος 45-90 μέτρα, σύμφωνα με τους κανονισμούς της FIFA.",
+  "Οι κίτρινες και κόκκινες κάρτες χρησιμοποιήθηκαν για πρώτη φορά στο Παγκόσμιο Κύπελλο του 1970 στο Μεξικό, ιδέα του Άγγλου διαιτητή Ken Aston.",
+];
+
+export function getFallbackFootballFact(date: Date = new Date()): string {
+  const start = Date.UTC(date.getUTCFullYear(), 0, 0);
+  const dayOfYear = Math.floor((date.getTime() - start) / 86400000);
+  return GENERAL_FACTS[dayOfYear % GENERAL_FACTS.length];
+}

@@ -10,7 +10,7 @@ import { NewsFeed } from "@/components/predictor/NewsFeed";
 import { getLatestSportsNews } from "@/lib/news";
 import { Ticker } from "@/components/predictor/Ticker";
 import { OnThisDay } from "@/components/predictor/OnThisDay";
-import { getTodaysFootballHistory } from "@/lib/football-history";
+import { getTodaysFootballHistory, getFallbackFootballFact } from "@/lib/football-history";
 
 function pickLabelFor(
   model: { winHome: number; draw: number; winAway: number },
@@ -54,6 +54,7 @@ export default async function TodayPage() {
     return { fixtureId: f.id, homeName: f.homeTeam.name, awayName: f.awayTeam.name, pickLabel: p.label, pct: p.pct };
   });
   const historyFact = getTodaysFootballHistory();
+  const fallbackFact = getFallbackFootballFact();
 
   return (
     <div className="relative">
@@ -106,7 +107,7 @@ export default async function TodayPage() {
               </>
             )}
             <NewsFeed items={news} />
-            <OnThisDay fact={historyFact} />
+            <OnThisDay fact={historyFact} fallbackFact={fallbackFact} />
           </div>
 
           <div className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
@@ -182,7 +183,7 @@ export default async function TodayPage() {
           )}
           <TopPicks items={topPicks} />
           <NewsFeed items={news} />
-          <OnThisDay fact={historyFact} />
+          <OnThisDay fact={historyFact} fallbackFact={fallbackFact} />
           {pickOfDay && (
             <InstinctQuiz
               homeName={pickOfDay.fixture.homeTeam.name}
