@@ -8,6 +8,9 @@ import { InstinctQuiz } from "@/components/predictor/InstinctQuiz";
 import { TopPicks, type TopPickItem } from "@/components/predictor/TopPicks";
 import { NewsFeed } from "@/components/predictor/NewsFeed";
 import { getLatestSportsNews } from "@/lib/news";
+import { Ticker } from "@/components/predictor/Ticker";
+import { OnThisDay } from "@/components/predictor/OnThisDay";
+import { getTodaysFootballHistory } from "@/lib/football-history";
 
 function pickLabelFor(
   model: { winHome: number; draw: number; winAway: number },
@@ -46,9 +49,15 @@ export default async function TodayPage() {
       const p = pickLabelFor(model, f.homeTeam.name, f.awayTeam.name, t("draw"));
       return { fixtureId: f.id, homeName: f.homeTeam.name, awayName: f.awayTeam.name, pickLabel: p.label, pct: p.pct };
     });
+  const tickerItems = byConfidence.slice(0, 12).map(({ fixture: f, model }) => {
+    const p = pickLabelFor(model, f.homeTeam.name, f.awayTeam.name, t("draw"));
+    return { fixtureId: f.id, homeName: f.homeTeam.name, awayName: f.awayTeam.name, pickLabel: p.label, pct: p.pct };
+  });
+  const historyFact = getTodaysFootballHistory();
 
   return (
     <div className="relative">
+      <Ticker items={tickerItems} />
       <div className="relative overflow-hidden bg-bg pb-14 pt-12">
         <div
           className="absolute -top-32 -right-24 w-96 h-96 bg-lime"
@@ -97,6 +106,7 @@ export default async function TodayPage() {
               </>
             )}
             <NewsFeed items={news} />
+            <OnThisDay fact={historyFact} />
           </div>
 
           <div className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
@@ -172,6 +182,7 @@ export default async function TodayPage() {
           )}
           <TopPicks items={topPicks} />
           <NewsFeed items={news} />
+          <OnThisDay fact={historyFact} />
           {pickOfDay && (
             <InstinctQuiz
               homeName={pickOfDay.fixture.homeTeam.name}

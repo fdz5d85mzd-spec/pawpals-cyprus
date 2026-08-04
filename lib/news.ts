@@ -14,6 +14,12 @@ export interface NewsItem {
 const FEEDS: { url: string; source: string }[] = [
   { url: "https://www.gazzetta.gr/rss.xml", source: "Gazzetta" },
   { url: "https://www.sdna.gr/rss/all", source: "SDNA" },
+  // Greek sports sites often front their RSS behind bot-protection that
+  // blocks datacenter IPs (which is what a Vercel function looks like to
+  // them) — BBC's feed is built for wide syndication and rarely blocks
+  // server-side fetches, so it's here as a fallback that's very likely to
+  // actually return something.
+  { url: "http://feeds.bbci.co.uk/sport/football/rss.xml", source: "BBC Sport" },
 ];
 
 const parser = new XMLParser({ ignoreAttributes: false });
@@ -24,7 +30,7 @@ interface RssItem {
   pubDate?: unknown;
 }
 
-async function fetchFeed(feed: { url: string; source: string }): Promise<NewsItem[]> {
+async function fetchFeed(feed: { url: string; source: string }): Promise<{ items: NewsItem[]; error?: string }> {
   try {
     const res = await fetch(feed.url, {
       headers: { "User-Agent": "Mozilla/5.0 (compatible; SkoramaBot/1.0; +https://skorama.xyz)" },
@@ -32,35 +38,56 @@ async function fetchFeed(feed: { url: string; source: string }): Promise<NewsIte
       // this from re-fetching both feeds on every homepage render.
       next: { revalidate: 900 },
     });
-    if (!res.ok) return [];
+    if (!res.ok) {
+      const error = `HTTP ${res.status}`;
+      console.error(`news feed ${feed.source} failed: ${error}`);
+      return { items: [], error };
+    }
 
     const xml = await res.text();
     const parsed = parser.parse(xml);
     const rawItems = parsed?.rss?.channel?.item ?? [];
     const items: RssItem[] = Array.isArray(rawItems) ? rawItems : [rawItems];
 
-    return items
-      .slice(0, 8)
-      .map((it) => ({
-        title: String(it.title ?? "").trim(),
-        link: String(it.link ?? "").trim(),
-        pubDate: typeof it.pubDate === "string" ? it.pubDate : undefined,
-        source: feed.source,
-      }))
-      .filter((n) => n.title && n.link);
-  } catch {
+    return {
+      items: items
+        .slice(0, 8)
+        .map((it) => ({
+          title: String(it.title ?? "").trim(),
+          link: String(it.link ?? "").trim(),
+          pubDate: typeof it.pubDate === "string" ? it.pubDate : undefined,
+          source: feed.source,
+        }))
+        .filter((n) => n.title && n.link),
+    };
+  } catch (err) {
     // A feed being down/blocked shouldn't take the homepage with it.
-    return [];
+    const error = err instanceof Error ? err.message : String(err);
+    console.error(`news feed ${feed.source} failed: ${error}`);
+    return { items: [], error };
   }
 }
 
 export async function getLatestSportsNews(limit = 6): Promise<NewsItem[]> {
   const results = await Promise.all(FEEDS.map(fetchFeed));
-  const merged = results.flat();
+  const merged = results.flatMap((r) => r.items);
   merged.sort((a, b) => {
     const ta = a.pubDate ? new Date(a.pubDate).getTime() : 0;
     const tb = b.pubDate ? new Date(b.pubDate).getTime() : 0;
     return tb - ta;
   });
   return merged.slice(0, limit);
+}
+
+// Debug helper for /api/cron/debug-news — surfaces per-feed status so a
+// blocked/broken feed can be diagnosed from a browser instead of needing
+// Vercel function log access.
+export async function getNewsFeedDiagnostics() {
+  const results = await Promise.all(
+    FEEDS.map(async (feed) => {
+      const { items, error } = await fetchFeed(feed);
+      return { source: feed.source, url: feed.url, itemCount: items.length, error: error ?? null };
+    })
+  );
+  return results;
 }
