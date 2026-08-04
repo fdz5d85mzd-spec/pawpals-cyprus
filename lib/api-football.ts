@@ -89,24 +89,12 @@ export async function getFixtureById(fixtureId: number): Promise<AFFixture | und
 const TRACKED_LEAGUES = [
   { id: 197, name: "Super League Ελλάδα" }, // Greece
   { id: 39, name: "Premier League" }, // England
-  { id: 40, name: "Championship" }, // England 2nd tier
   { id: 140, name: "La Liga" }, // Spain
   { id: 135, name: "Serie A" }, // Italy
   { id: 78, name: "Bundesliga" }, // Germany
   { id: 61, name: "Ligue 1" }, // France
-  { id: 88, name: "Eredivisie" }, // Netherlands
-  { id: 94, name: "Primeira Liga" }, // Portugal
-  { id: 144, name: "Jupiler Pro League" }, // Belgium
-  { id: 203, name: "Süper Lig" }, // Turkey
-  { id: 179, name: "Scottish Premiership" }, // Scotland
-  { id: 2, name: "UEFA Champions League" },
-  { id: 3, name: "UEFA Europa League" },
-  { id: 253, name: "MLS" }, // USA/Canada, Feb-Dec
-  { id: 71, name: "Brasileirão" }, // Brazil, Apr-Dec
-  { id: 128, name: "Liga Profesional Argentina" }, // Argentina
-  { id: 262, name: "Liga MX" }, // Mexico
-  { id: 98, name: "J1 League" }, // Japan, Feb-Dec
-  { id: 292, name: "K League 1" }, // South Korea, Feb-Nov
+  { id: 253, name: "MLS" }, // USA/Canada, in-season Feb-Dec
+  { id: 71, name: "Brasileirão" }, // Brazil, in-season Apr-Dec
 ];
 
 // Most European top-flight leagues (incl. the Greek Super League) run
@@ -131,7 +119,7 @@ export async function getFixturesInWindow(hoursAhead = 24): Promise<AFFixture[]>
   const toDate = to.toISOString().slice(0, 10);
   const season = currentSeasonYear();
 
-  const perLeague = await throttledMap(TRACKED_LEAGUES, 250, (league) =>
+  const perLeague = await throttledMap(TRACKED_LEAGUES, 800, (league) =>
     afFetch<AFFixture[]>("/fixtures", { league: league.id, season, from: fromDate, to: toDate, timezone: "UTC" })
   );
   const fixtures = perLeague.flat();
@@ -221,9 +209,9 @@ export async function buildTeamStats(params: {
   const { teamId, teamName, shortName, leagueId, season, standings } = params;
 
   const stats = await getTeamStatistics(teamId, leagueId, season);
-  await sleep(250);
+  await sleep(400);
   const players = await getTeamPlayers(teamId, season);
-  await sleep(250);
+  await sleep(400);
   const injuries = await getInjuries(teamId, season);
 
   const leaguePos = standings.find((s) => s.team.id === teamId)?.rank ?? 10;
