@@ -1,13 +1,15 @@
 import Stripe from "stripe";
-import https from "https";
 
-// Serverless platforms (Vercel) freeze/thaw function containers, which can
-// leave keep-alive sockets stale and surface as "StripeConnectionError:
-// An error occurred with our connection to Stripe" on the first request
-// after a cold start. Disabling keep-alive and allowing a couple of
-// automatic retries avoids that class of transient failure.
+// Disabling keep-alive on Node's http.Agent (the previous attempt here)
+// didn't clear the "StripeConnectionError: An error occurred with our
+// connection to Stripe" errors seen in production — the failures kept
+// happening even across retries, so it wasn't just a stale-socket blip.
+// Switching to Stripe's fetch-based HTTP client sidesteps Node's raw
+// http/https module entirely (it uses the platform's native fetch/undici
+// instead), which is Stripe's own recommended client for serverless
+// runtimes like Vercel functions.
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", {
   apiVersion: "2024-06-20",
-  httpAgent: new https.Agent({ keepAlive: false }),
+  httpClient: Stripe.createFetchHttpClient(),
   maxNetworkRetries: 2,
 });
