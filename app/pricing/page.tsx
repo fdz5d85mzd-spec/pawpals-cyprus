@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Check, Crown } from "lucide-react";
+import { PromoRedeemForm } from "@/components/PromoRedeemForm";
 
 const FREE_FEATURES = ["Αποτέλεσμα 1Χ2 για όλους τους αγώνες σε 24ω", "Ιστορικό & ακρίβεια μοντέλου", "Αξιολογήσεις & εισηγήσεις"];
 const PRO_FEATURES = [
@@ -72,6 +74,17 @@ export default function PricingPage() {
           <button onClick={upgrade} disabled={loading} className="btn-primary w-full">
             {loading ? "..." : "Αναβάθμιση σε Pro"}
           </button>
+
+          <div className="mt-4 pt-4 border-t border-border/60">
+            <div className="text-[10px] text-muted mb-2">Έχεις promo code αντί για κάρτα;</div>
+            {session ? (
+              <PromoRedeemForm />
+            ) : (
+              <Link href="/login" className="text-xs text-lime font-bold">
+                Συνδέσου για να το χρησιμοποιήσεις
+              </Link>
+            )}
+          </div>
         </div>
       </div>
 

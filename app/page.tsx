@@ -4,6 +4,13 @@ import { prisma } from "@/lib/db";
 import { presentPrediction, hoursUntil } from "@/lib/present";
 import { PickOfDay } from "@/components/predictor/PickOfDay";
 import { InstinctQuiz } from "@/components/predictor/InstinctQuiz";
+import { TopPicks, type TopPickItem } from "@/components/predictor/TopPicks";
+
+function pickLabelFor(model: { winHome: number; draw: number; winAway: number }, homeName: string, awayName: string) {
+  if (model.winHome >= model.draw && model.winHome >= model.winAway) return { label: homeName, pct: model.winHome };
+  if (model.winAway >= model.draw && model.winAway >= model.winHome) return { label: awayName, pct: model.winAway };
+  return { label: "Ισοπαλία", pct: model.draw };
+}
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +26,14 @@ export default async function TodayPage() {
     .filter((f) => f.prediction)
     .map((f) => ({ fixture: f, model: presentPrediction(f.prediction!) }));
 
-  const pickOfDay = [...withModel].sort((a, b) => b.model.confidence - a.model.confidence)[0];
+  const byConfidence = [...withModel].sort((a, b) => b.model.confidence - a.model.confidence);
+  const pickOfDay = byConfidence[0];
+  const topPicks: TopPickItem[] = byConfidence
+    .slice(1, 4)
+    .map(({ fixture: f, model }) => {
+      const p = pickLabelFor(model, f.homeTeam.name, f.awayTeam.name);
+      return { fixtureId: f.id, homeName: f.homeTeam.name, awayName: f.awayTeam.name, pickLabel: p.label, pct: p.pct };
+    });
 
   return (
     <div className="relative">
@@ -62,13 +76,14 @@ export default async function TodayPage() {
 
           {/* Sidebar content repeated inline on mobile, above the list */}
           {pickOfDay && (
-            <div className="mb-4 lg:hidden">
+            <div className="mb-4 space-y-4 lg:hidden">
               <PickOfDay
                 fixtureId={pickOfDay.fixture.id}
                 homeName={pickOfDay.fixture.homeTeam.name}
                 awayName={pickOfDay.fixture.awayTeam.name}
                 model={pickOfDay.model}
               />
+              <TopPicks items={topPicks} />
             </div>
           )}
 
@@ -144,6 +159,7 @@ export default async function TodayPage() {
               model={pickOfDay.model}
             />
           )}
+          <TopPicks items={topPicks} />
           {pickOfDay && (
             <InstinctQuiz
               homeName={pickOfDay.fixture.homeTeam.name}

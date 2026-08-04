@@ -9,7 +9,13 @@ export const authOptions: AuthOptions = {
   // Credentials provider requires JWT sessions in NextAuth v4 — the adapter
   // still owns User/Account/Subscription rows, only the session itself is
   // a signed cookie rather than a DB-backed row.
-  session: { strategy: "jwt" },
+  //
+  // maxAge + updateAge together give an idle timeout rather than a fixed
+  // absolute expiry: every active request within `maxAge` re-signs the
+  // cookie with a fresh `maxAge` window (sliding expiration), so a user who
+  // keeps using the site never gets logged out, but 2h of no requests at
+  // all lets the cookie expire on its own.
+  session: { strategy: "jwt", maxAge: 2 * 60 * 60, updateAge: 15 * 60 },
   pages: { signIn: "/login" },
   providers: [
     CredentialsProvider({
