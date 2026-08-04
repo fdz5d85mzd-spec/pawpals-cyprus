@@ -4,6 +4,23 @@
 
 const BASE_URL = `https://${process.env.API_FOOTBALL_HOST ?? "v3.football.api-sports.io"}`;
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// API-Football's Pro plan caps requests at ~5/second. Firing a batch of
+// calls with Promise.all bursts well past that instantly (that's exactly
+// what tripped the "Too many requests per minute" error) — this runs them
+// one at a time with a floor delay between each instead.
+async function throttledMap<T, R>(items: T[], delayMs: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+  const results: R[] = [];
+  for (const item of items) {
+    results.push(await fn(item));
+    await sleep(delayMs);
+  }
+  return results;
+}
+
 async function afFetch<T>(path: string, params: Record<string, string | number> = {}): Promise<T> {
   const url = new URL(BASE_URL + path);
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, String(v));
@@ -114,10 +131,8 @@ export async function getFixturesInWindow(hoursAhead = 24): Promise<AFFixture[]>
   const toDate = to.toISOString().slice(0, 10);
   const season = currentSeasonYear();
 
-  const perLeague = await Promise.all(
-    TRACKED_LEAGUES.map((league) =>
-      afFetch<AFFixture[]>("/fixtures", { league: league.id, season, from: fromDate, to: toDate, timezone: "UTC" })
-    )
+  const perLeague = await throttledMap(TRACKED_LEAGUES, 250, (league) =>
+    afFetch<AFFixture[]>("/fixtures", { league: league.id, season, from: fromDate, to: toDate, timezone: "UTC" })
   );
   const fixtures = perLeague.flat();
 
@@ -205,11 +220,11 @@ export async function buildTeamStats(params: {
 }): Promise<TeamStats> {
   const { teamId, teamName, shortName, leagueId, season, standings } = params;
 
-  const [stats, players, injuries] = await Promise.all([
-    getTeamStatistics(teamId, leagueId, season),
-    getTeamPlayers(teamId, season),
-    getInjuries(teamId, season),
-  ]);
+  const stats = await getTeamStatistics(teamId, leagueId, season);
+  await sleep(250);
+  const players = await getTeamPlayers(teamId, season);
+  await sleep(250);
+  const injuries = await getInjuries(teamId, season);
 
   const leaguePos = standings.find((s) => s.team.id === teamId)?.rank ?? 10;
 
