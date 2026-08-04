@@ -10,6 +10,9 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [emailUpdatesOptIn, setEmailUpdatesOptIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -21,13 +24,13 @@ export default function RegisterPage() {
     const res = await fetch("/api/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password }),
+      body: JSON.stringify({ name, email, password, dateOfBirth, acceptTerms, emailUpdatesOptIn }),
     });
     const data = await res.json();
 
     if (!res.ok) {
       setLoading(false);
-      setError(data.error?.formErrors?.[0] ?? data.error ?? "Κάτι πήγε στραβά.");
+      setError(data.error?.formErrors?.[0] ?? data.error?.fieldErrors?.acceptTerms?.[0] ?? data.error ?? "Κάτι πήγε στραβά.");
       return;
     }
 
@@ -66,6 +69,44 @@ export default function RegisterPage() {
           onChange={(e) => setPassword(e.target.value)}
           className="input"
         />
+        <div>
+          <label className="block text-[10px] uppercase tracking-wide font-mono mb-1.5 text-dim">Ημερομηνία γέννησης</label>
+          <input
+            type="date"
+            required
+            value={dateOfBirth}
+            onChange={(e) => setDateOfBirth(e.target.value)}
+            className="input"
+          />
+        </div>
+
+        <label className="flex items-start gap-2 text-[11px] text-muted pt-1">
+          <input
+            type="checkbox"
+            required
+            checked={acceptTerms}
+            onChange={(e) => setAcceptTerms(e.target.checked)}
+            className="mt-0.5"
+          />
+          <span>
+            Αποδέχομαι τους{" "}
+            <Link href="/terms" className="text-lime font-bold">
+              Όρους Χρήσης
+            </Link>{" "}
+            και τους κανονισμούς της σελίδας.
+          </span>
+        </label>
+
+        <label className="flex items-start gap-2 text-[11px] text-muted">
+          <input
+            type="checkbox"
+            checked={emailUpdatesOptIn}
+            onChange={(e) => setEmailUpdatesOptIn(e.target.checked)}
+            className="mt-0.5"
+          />
+          <span>Θέλω να λαμβάνω ενημερώσεις με σημαντικά γεγονότα &amp; προβλέψεις μέσω email.</span>
+        </label>
+
         {error && <div className="text-xs text-rose">{error}</div>}
         <button type="submit" disabled={loading} className="btn-primary w-full">
           {loading ? "..." : "Δημιουργία λογαριασμού"}

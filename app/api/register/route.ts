@@ -7,6 +7,9 @@ const schema = z.object({
   name: z.string().min(1).max(80),
   email: z.string().email(),
   password: z.string().min(8).max(72),
+  dateOfBirth: z.string().min(1, "Συμπλήρωσε την ημερομηνία γέννησής σου."),
+  acceptTerms: z.boolean().refine((v) => v === true, "Πρέπει να αποδεχτείς τους όρους χρήσης."),
+  emailUpdatesOptIn: z.boolean().optional().default(false),
 });
 
 export async function POST(req: NextRequest) {
@@ -14,7 +17,7 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
-  const { name, email, password } = parsed.data;
+  const { name, email, password, dateOfBirth, emailUpdatesOptIn } = parsed.data;
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
@@ -27,6 +30,9 @@ export async function POST(req: NextRequest) {
       name,
       email,
       passwordHash,
+      dateOfBirth: new Date(dateOfBirth),
+      acceptedTermsAt: new Date(),
+      emailUpdatesOptIn,
       subscription: { create: { plan: "FREE", status: "inactive" } },
     },
   });
