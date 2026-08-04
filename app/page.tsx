@@ -5,6 +5,8 @@ import { presentPrediction, hoursUntil } from "@/lib/present";
 import { PickOfDay } from "@/components/predictor/PickOfDay";
 import { InstinctQuiz } from "@/components/predictor/InstinctQuiz";
 import { TopPicks, type TopPickItem } from "@/components/predictor/TopPicks";
+import { NewsFeed } from "@/components/predictor/NewsFeed";
+import { getLatestSportsNews } from "@/lib/news";
 
 function pickLabelFor(model: { winHome: number; draw: number; winAway: number }, homeName: string, awayName: string) {
   if (model.winHome >= model.draw && model.winHome >= model.winAway) return { label: homeName, pct: model.winHome };
@@ -15,12 +17,15 @@ function pickLabelFor(model: { winHome: number; draw: number; winAway: number },
 export const dynamic = "force-dynamic";
 
 export default async function TodayPage() {
-  const fixtures = await prisma.fixture.findMany({
-    where: { kickoff: { gte: new Date() }, prediction: { isNot: null } },
-    include: { homeTeam: true, awayTeam: true, prediction: true },
-    orderBy: { kickoff: "asc" },
-    take: 20,
-  });
+  const [fixtures, news] = await Promise.all([
+    prisma.fixture.findMany({
+      where: { kickoff: { gte: new Date() }, prediction: { isNot: null } },
+      include: { homeTeam: true, awayTeam: true, prediction: true },
+      orderBy: { kickoff: "asc" },
+      take: 20,
+    }),
+    getLatestSportsNews(),
+  ]);
 
   const withModel = fixtures
     .filter((f) => f.prediction)
@@ -56,7 +61,7 @@ export default async function TodayPage() {
           >
             Οι αριθμοί
             <br />
-            <span className="bg-lime text-bg px-2 inline-block -skew-x-6">δεν παίρνουν μέρος</span>
+            <span className="bg-lime text-bg px-2 inline-block -skew-x-6">δεν λένε ψέματα</span>
           </h1>
           <p className="text-sm mt-4 text-muted max-w-md animate-fade-up" style={{ animationDelay: "120ms" }}>
             Κάθε πρόβλεψη προκύπτει από στατιστικό μοντέλο Poisson πάνω σε φόρμα, γκολ υπέρ/κατά και έδρα —
@@ -75,17 +80,20 @@ export default async function TodayPage() {
           )}
 
           {/* Sidebar content repeated inline on mobile, above the list */}
-          {pickOfDay && (
-            <div className="mb-4 space-y-4 lg:hidden">
-              <PickOfDay
-                fixtureId={pickOfDay.fixture.id}
-                homeName={pickOfDay.fixture.homeTeam.name}
-                awayName={pickOfDay.fixture.awayTeam.name}
-                model={pickOfDay.model}
-              />
-              <TopPicks items={topPicks} />
-            </div>
-          )}
+          <div className="mb-4 space-y-4 lg:hidden">
+            {pickOfDay && (
+              <>
+                <PickOfDay
+                  fixtureId={pickOfDay.fixture.id}
+                  homeName={pickOfDay.fixture.homeTeam.name}
+                  awayName={pickOfDay.fixture.awayTeam.name}
+                  model={pickOfDay.model}
+                />
+                <TopPicks items={topPicks} />
+              </>
+            )}
+            <NewsFeed items={news} />
+          </div>
 
           <div className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
             {withModel.map(({ fixture: f, model }, i) => {
@@ -160,6 +168,7 @@ export default async function TodayPage() {
             />
           )}
           <TopPicks items={topPicks} />
+          <NewsFeed items={news} />
           {pickOfDay && (
             <InstinctQuiz
               homeName={pickOfDay.fixture.homeTeam.name}
