@@ -12,13 +12,11 @@ export interface NewsItem {
 }
 
 const FEEDS: { url: string; source: string }[] = [
-  { url: "https://www.gazzetta.gr/rss.xml", source: "Gazzetta" },
-  { url: "https://www.sdna.gr/rss/all", source: "SDNA" },
-  // Greek sports sites often front their RSS behind bot-protection that
-  // blocks datacenter IPs (which is what a Vercel function looks like to
-  // them) — BBC's feed is built for wide syndication and rarely blocks
-  // server-side fetches, so it's here as a fallback that's very likely to
-  // actually return something.
+  // The previous "/rss.xml" and "/rss/all" paths both 404'd — these sites
+  // restructure their feed URLs periodically without redirects.
+  { url: "https://www.gazzetta.gr/rss", source: "Gazzetta" },
+  // BBC's feed is built for wide syndication and reliably returns content —
+  // kept as a always-on source since Greek outlets' feed URLs keep moving.
   { url: "http://feeds.bbci.co.uk/sport/football/rss.xml", source: "BBC Sport" },
 ];
 
