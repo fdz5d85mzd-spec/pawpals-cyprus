@@ -26,7 +26,7 @@ export function Nav() {
           <span className="font-display font-extrabold text-sm text-ink tracking-tight uppercase">Skorama</span>
         </Link>
 
-        <nav className="flex items-center gap-3 overflow-x-auto scrollbar-none">
+        <nav className="flex items-center gap-3 overflow-x-auto scrollbar-none min-w-0 flex-1">
           {LINKS.map((l) => {
             const active = pathname === l.href;
             return (
