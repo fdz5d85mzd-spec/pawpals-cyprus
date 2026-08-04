@@ -86,7 +86,7 @@ export async function getFixtureById(fixtureId: number): Promise<AFFixture | und
 // season) plus leagues on other calendars that are in-season right now
 // (MLS, Brazil, Argentina, Mexico, Japan, South Korea run roughly
 // Feb/Mar-Nov) — so there's usually something to show year-round.
-const TRACKED_LEAGUES = [
+export const TRACKED_LEAGUES = [
   { id: 197, name: "Super League Ελλάδα" }, // Greece
   { id: 39, name: "Premier League" }, // England
   { id: 140, name: "La Liga" }, // Spain
@@ -113,7 +113,7 @@ const TRACKED_LEAGUES = [
 // current calendar year instead — this heuristic gets those wrong for a
 // few months a year (roughly Jan-Jun), which just means sync-fixtures
 // finds nothing for that specific league until the estimate lines back up.
-function currentSeasonYear(): number {
+export function currentSeasonYear(): number {
   const now = new Date();
   const month = now.getUTCMonth() + 1; // 1-12
   return month >= 7 ? now.getUTCFullYear() : now.getUTCFullYear() - 1;
@@ -152,16 +152,37 @@ export async function getTeamStatistics(teamId: number, leagueId: number, season
 }
 
 export interface AFStandingRow {
-  team: { id: number };
   rank: number;
+  team: { id: number; name: string };
+  points: number;
+  goalsDiff: number;
+  form: string | null;
+  all: {
+    played: number;
+    win: number;
+    draw: number;
+    lose: number;
+    goals: { for: number; against: number };
+  };
 }
 
-export async function getStandings(leagueId: number, season: number) {
-  const response = await afFetch<{ league: { standings: AFStandingRow[][] } }[]>("/standings", {
-    league: leagueId,
-    season,
-  });
-  return response[0]?.league.standings.flat() ?? [];
+interface AFStandingsResponse {
+  league: {
+    id: number;
+    name: string;
+    country: string;
+    season: number;
+    standings: AFStandingRow[][];
+  };
+}
+
+export async function getStandings(
+  leagueId: number,
+  season: number
+): Promise<{ leagueMeta: AFStandingsResponse["league"] | undefined; rows: AFStandingRow[] }> {
+  const response = await afFetch<AFStandingsResponse[]>("/standings", { league: leagueId, season });
+  const leagueMeta = response[0]?.league;
+  return { leagueMeta, rows: leagueMeta?.standings.flat() ?? [] };
 }
 
 export interface AFPlayer {

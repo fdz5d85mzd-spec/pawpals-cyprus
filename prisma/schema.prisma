@@ -99,6 +99,7 @@ model League {
   logoUrl String?
   teams   Team[]
   fixtures Fixture[]
+  standings Standing[]
 }
 
 model Team {
@@ -117,6 +118,30 @@ model Team {
   keyPlayers    Player[]
   homeFixtures  Fixture[] @relation("HomeTeam")
   awayFixtures  Fixture[] @relation("AwayTeam")
+  standings     Standing[]
+}
+
+// Full league table row, refreshed daily by /api/cron/sync-standings.
+// Separate from Team.leaguePos (which is only the rank, opportunistically
+// updated whenever a prediction is frozen for that team).
+model Standing {
+  id           String   @id @default(cuid())
+  leagueId     Int
+  league       League   @relation(fields: [leagueId], references: [id])
+  teamId       Int
+  team         Team     @relation(fields: [teamId], references: [id])
+  rank         Int
+  points       Int
+  played       Int
+  win          Int
+  draw         Int
+  lose         Int
+  goalsFor     Int
+  goalsAgainst Int
+  form         String?
+  updatedAt    DateTime @updatedAt
+
+  @@unique([leagueId, teamId])
 }
 
 model Player {

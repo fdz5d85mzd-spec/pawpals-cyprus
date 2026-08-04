@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     include: { homeTeam: true, awayTeam: true, league: true },
   });
 
-  const standingsCache = new Map<number, Awaited<ReturnType<typeof getStandings>>>();
+  const standingsCache = new Map<number, Awaited<ReturnType<typeof getStandings>>["rows"]>();
   let frozen = 0;
   const errors: { fixtureId: number; error: string }[] = [];
 
@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
     try {
       let standings = standingsCache.get(fixture.leagueId);
       if (!standings) {
-        standings = await getStandings(fixture.leagueId, fixture.league.season);
+        standings = (await getStandings(fixture.leagueId, fixture.league.season)).rows;
         standingsCache.set(fixture.leagueId, standings);
       }
 

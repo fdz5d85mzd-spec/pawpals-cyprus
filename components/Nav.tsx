@@ -6,6 +6,7 @@ import { signOut, useSession } from "next-auth/react";
 
 const LINKS = [
   { href: "/", label: "Σήμερα" },
+  { href: "/standings", label: "Βαθμολογίες" },
   { href: "/history", label: "Ιστορικό" },
   { href: "/reviews", label: "Κριτικές" },
   { href: "/pricing", label: "Τιμές" },

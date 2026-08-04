@@ -7,6 +7,7 @@ import { getCurrentPlan } from "@/lib/plan";
 import { Eyebrow, Bar, Stat, Row, FormPill, ProGate } from "@/components/predictor/ui";
 import { ScoreHeatmap } from "@/components/predictor/ScoreHeatmap";
 import { Comments } from "@/components/predictor/Comments";
+import { buildMatchNarrative } from "@/lib/narrative";
 import type { FormResult } from "@/lib/model";
 
 export const dynamic = "force-dynamic";
@@ -38,6 +39,16 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
   const home = fixture.homeTeam;
   const away = fixture.awayTeam;
 
+  const narrative = buildMatchNarrative({
+    homeName: home.name,
+    awayName: away.name,
+    homeForm: home.form as FormResult[],
+    awayForm: away.form as FormResult[],
+    homePos: home.leaguePos,
+    awayPos: away.leaguePos,
+    model,
+  });
+
   return (
     <div className="max-w-xl mx-auto px-5 py-6 pb-16">
       <Link href="/" className="inline-flex items-center gap-1 text-xs mb-6 text-muted hover:text-ink transition-colors">
@@ -54,7 +65,9 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
       <div className="card p-5 mb-6">
         <div className="flex items-center justify-between mb-3">
           <div className="flex-1 text-center">
-            <div className="font-display text-xl text-ink font-bold">{home.shortName}</div>
+            <Link href={`/team/${home.id}`} className="font-display text-xl text-ink font-bold hover:text-lime transition-colors">
+              {home.shortName}
+            </Link>
             <div className="flex justify-center gap-1.5 mt-2.5">
               {(home.form as FormResult[]).map((r, i) => (
                 <FormPill key={i} r={r} />
@@ -63,7 +76,9 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
           </div>
           <div className="font-display text-lg px-3 text-dim">—</div>
           <div className="flex-1 text-center">
-            <div className="font-display text-xl text-ink font-bold">{away.shortName}</div>
+            <Link href={`/team/${away.id}`} className="font-display text-xl text-ink font-bold hover:text-lime transition-colors">
+              {away.shortName}
+            </Link>
             <div className="flex justify-center gap-1.5 mt-2.5">
               {(away.form as FormResult[]).map((r, i) => (
                 <FormPill key={i} r={r} />
@@ -75,6 +90,20 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
           <span>λ {model.lambdaHome.toFixed(2)}</span>
           <span>λ {model.lambdaAway.toFixed(2)}</span>
         </div>
+      </div>
+
+      <div className="card p-5 mb-6">
+        <Eyebrow>Ανάλυση</Eyebrow>
+        <p className="text-sm text-ink leading-relaxed mb-3">{narrative.teaser}</p>
+        <ProGate isPro={isPro}>
+          <div className="space-y-2 pt-1">
+            {narrative.details.map((d, i) => (
+              <p key={i} className="text-xs text-muted leading-relaxed">
+                {d}
+              </p>
+            ))}
+          </div>
+        </ProGate>
       </div>
 
       <div className="mb-6">
