@@ -26,6 +26,7 @@ model User {
   comments      MatchComment[]
   reviews       SiteReview[]
   suggestions   Suggestion[]
+  redeemedCodes PromoCode[]
 
   createdAt DateTime @default(now())
 }
@@ -270,4 +271,15 @@ model PredictionResult {
   settledAt    DateTime  @default(now())
 
   @@unique([predictionId, market])
+}
+
+// Free-Pro-access codes, redeemed once each. Grants PRO directly on
+// Subscription without going through Stripe (no card required).
+model PromoCode {
+  id               String    @id @default(cuid())
+  code             String    @unique
+  redeemedByUserId String?
+  redeemedBy       User?     @relation(fields: [redeemedByUserId], references: [id])
+  redeemedAt       DateTime?
+  createdAt        DateTime  @default(now())
 }
