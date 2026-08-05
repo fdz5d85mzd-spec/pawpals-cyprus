@@ -6,11 +6,19 @@ import { useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import { Check, Crown, Flame, Users } from "lucide-react";
 import { PromoRedeemForm } from "@/components/PromoRedeemForm";
+import type { BillingPlan } from "@/lib/pricing";
+
+const PLAN_PRICE: Record<BillingPlan, { amount: string }> = {
+  monthly: { amount: "6,99€" },
+  annual: { amount: "59,99€" },
+  lifetime: { amount: "249€" },
+};
 
 export default function PricingPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const t = useTranslations("pricing");
+  const [billingPlan, setBillingPlan] = useState<BillingPlan>("monthly");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [subCount, setSubCount] = useState<number | null>(null);
@@ -37,7 +45,11 @@ export default function PricingPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/stripe/checkout", { method: "POST" });
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: billingPlan }),
+      });
       const data = await res.json();
       if (!res.ok || !data.url) {
         setError(data.error ?? t("genericError"));
@@ -83,9 +95,29 @@ export default function PricingPage() {
             <Crown size={10} /> {t("popular")}
           </div>
           <div className="text-[10px] uppercase tracking-wide font-mono mb-3 text-lime">{t("pro")}</div>
-          <div className="font-display text-3xl mb-3 text-ink font-extrabold">
-            6,99€<span className="text-sm text-muted font-normal">{t("perMonth")}</span>
+
+          <div className="flex gap-1 mb-4 bg-surface2 p-1">
+            {(["monthly", "annual", "lifetime"] as const).map((p) => (
+              <button
+                key={p}
+                onClick={() => setBillingPlan(p)}
+                className={`flex-1 text-[9px] font-bold uppercase tracking-wide py-1.5 transition-colors ${
+                  billingPlan === p ? "bg-lime text-bg" : "text-muted hover:text-ink"
+                }`}
+              >
+                {t(`plan.${p}`)}
+              </button>
+            ))}
           </div>
+
+          <div className="font-display text-3xl mb-1 text-ink font-extrabold">
+            {PLAN_PRICE[billingPlan].amount}
+            <span className="text-sm text-muted font-normal">{t(`planSuffix.${billingPlan}`)}</span>
+          </div>
+          {billingPlan === "annual" && <div className="text-[10px] text-lime font-bold mb-3">{t("annualSavings")}</div>}
+          {billingPlan === "lifetime" && <div className="text-[10px] text-lime font-bold mb-3">{t("lifetimeNote")}</div>}
+          {billingPlan === "monthly" && <div className="mb-3" />}
+
           {earlyBirdSpotsLeft !== null && earlyBirdSpotsLeft > 0 && (
             <div className="flex items-center gap-1.5 mb-5 px-2.5 py-1.5 bg-lime/10 border border-lime/30 text-[11px] text-lime font-bold">
               <Flame size={12} />

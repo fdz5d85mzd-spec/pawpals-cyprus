@@ -1,18 +1,24 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/db";
-import { EARLY_BIRD_LIMIT } from "@/lib/pricing";
+import { EARLY_BIRD_LIMIT, BILLING_PLANS, isBillingPlan, type BillingPlan } from "@/lib/pricing";
 
-// Creates a Stripe Checkout session for the Pro monthly plan. The webhook
-// (see app/api/stripe/webhook/route.ts) is what actually flips the user's
-// plan to PRO once payment succeeds — this route only starts checkout.
-export async function POST() {
+// Creates a Stripe Checkout session for the chosen Pro plan (monthly/annual
+// subscription, or a one-time lifetime payment). The webhook (see
+// app/api/stripe/webhook/route.ts) is what actually flips the user's plan
+// to PRO once payment succeeds — this route only starts checkout.
+export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Sign in required." }, { status: 401 });
   }
+
+  const body: { plan?: unknown } = await req.json().catch(() => ({}));
+  const plan: BillingPlan = isBillingPlan(body.plan) ? body.plan : "monthly";
+  const { envVar, mode } = BILLING_PLANS[plan];
+  const priceId = process.env[envVar];
 
   try {
     const user = await prisma.user.findUnique({
@@ -21,8 +27,8 @@ export async function POST() {
     });
     if (!user) return NextResponse.json({ error: "User not found." }, { status: 404 });
 
-    if (!process.env.STRIPE_PRICE_PRO_MONTHLY) {
-      throw new Error("STRIPE_PRICE_PRO_MONTHLY is not set");
+    if (!priceId) {
+      throw new Error(`${envVar} is not set`);
     }
 
     let customerId = user.subscription?.stripeCustomerId;
@@ -51,13 +57,13 @@ export async function POST() {
     }
 
     const checkoutSession = await stripe.checkout.sessions.create({
-      mode: "subscription",
+      mode,
       customer: customerId,
-      line_items: [{ price: process.env.STRIPE_PRICE_PRO_MONTHLY, quantity: 1 }],
+      line_items: [{ price: priceId, quantity: 1 }],
       ...(discounts ? { discounts } : {}),
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/account?checkout=success`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing?checkout=cancelled`,
-      metadata: { userId: user.id },
+      metadata: { userId: user.id, plan },
     });
 
     return NextResponse.json({ url: checkoutSession.url });

@@ -62,6 +62,21 @@ export async function POST(req: NextRequest) {
           sub.metadata.userId = checkoutSession.metadata.userId;
         }
         await upsertFromSubscription(sub);
+      } else if (checkoutSession.mode === "payment") {
+        // One-time lifetime purchase — there's no Stripe Subscription object
+        // at all here, so this is the only place that ever flips the user
+        // to PRO for this plan. No currentPeriodEnd/stripeSubscriptionId
+        // means "never expires" everywhere else that reads Subscription.
+        const userId = checkoutSession.metadata?.userId;
+        const customerId =
+          typeof checkoutSession.customer === "string" ? checkoutSession.customer : checkoutSession.customer?.id;
+        if (userId) {
+          await prisma.subscription.upsert({
+            where: { userId },
+            create: { userId, plan: "PRO", status: "active", stripeCustomerId: customerId },
+            update: { plan: "PRO", status: "active" },
+          });
+        }
       }
       break;
     }
