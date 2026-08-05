@@ -8,13 +8,17 @@ import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { TrialBanner } from "@/components/TrialBanner";
 import { SignupPopup } from "@/components/SignupPopup";
+import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import "../globals.css";
 
 export const metadata: Metadata = {
   title: "Skorama",
   description: "Στατιστικό μοντέλο πρόβλεψης ποδοσφαίρου — Poisson + Dixon-Coles.",
   metadataBase: new URL("https://skorama.xyz"),
+  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "Skorama" },
 };
+
+export const viewport = { themeColor: "#0B0B0D" };
 
 export default async function RootLayout({
   children,
@@ -38,6 +42,7 @@ export default async function RootLayout({
             <SignupPopup />
           </Providers>
         </NextIntlClientProvider>
+        <ServiceWorkerRegister />
         <Analytics />
       </body>
     </html>
