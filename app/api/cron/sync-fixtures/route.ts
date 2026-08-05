@@ -13,9 +13,9 @@ export async function GET(req: NextRequest) {
   const authError = cronAuthError(req);
   if (authError) return authError;
 
-  let fixtures;
+  let fixtures, leagueErrors;
   try {
-    fixtures = await getFixturesInWindow(48);
+    ({ fixtures, leagueErrors } = await getFixturesInWindow(48));
   } catch (err) {
     return NextResponse.json(
       { ok: false, fixturesSynced: 0, error: err instanceof Error ? err.message : String(err) },
@@ -68,5 +68,5 @@ export async function GET(req: NextRequest) {
     upserted++;
   }
 
-  return NextResponse.json({ ok: true, fixturesSynced: upserted });
+  return NextResponse.json({ ok: true, fixturesSynced: upserted, leagueErrors });
 }
