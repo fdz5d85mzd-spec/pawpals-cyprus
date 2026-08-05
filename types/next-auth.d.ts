@@ -6,6 +6,7 @@ declare module "next-auth" {
       id?: string;
       plan?: "FREE" | "PRO";
       trialEndsAt?: string | null;
+      isAdmin?: boolean;
     } & DefaultSession["user"];
   }
 }
@@ -15,5 +16,6 @@ declare module "next-auth/jwt" {
     userId?: string;
     plan?: "FREE" | "PRO";
     trialEndsAt?: string | null;
+    isAdmin?: boolean;
   }
 }

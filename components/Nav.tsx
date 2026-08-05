@@ -27,7 +27,8 @@ export function Nav() {
     { href: "/leaderboard", label: tFooter("leaderboard") },
     { href: "/affiliate", label: tFooter("affiliate") },
     { href: "/pricing", label: t("pricing") },
-  ] as const;
+    ...(session?.user?.isAdmin ? [{ href: "/admin", label: "Admin" }] : []),
+  ];
 
   return (
     <header className="sticky top-0 z-40 border-b-2 border-lime bg-bg">
