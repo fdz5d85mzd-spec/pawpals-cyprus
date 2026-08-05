@@ -1,9 +1,15 @@
+"use client";
+
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
+import { Link, usePathname } from "@/i18n/navigation";
 
 export function Footer() {
   const t = useTranslations("footer");
   const nav = useTranslations("nav");
+  const pathname = usePathname();
+
+  // /live is a bare OBS browser-source overlay — no site chrome around it.
+  if (pathname === "/live") return null;
 
   const COLUMNS = [
     {

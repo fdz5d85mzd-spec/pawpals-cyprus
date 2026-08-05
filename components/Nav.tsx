@@ -14,6 +14,9 @@ export function Nav() {
   const locale = useLocale();
   const [open, setOpen] = useState(false);
 
+  // /live is a bare OBS browser-source overlay — no site chrome around it.
+  if (pathname === "/live") return null;
+
   const LINKS = [
     { href: "/", label: t("today") },
     { href: "/standings", label: t("standings") },
