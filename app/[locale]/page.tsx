@@ -11,6 +11,7 @@ import { getLatestSportsNews } from "@/lib/news";
 import { Ticker } from "@/components/predictor/Ticker";
 import { OnThisDay } from "@/components/predictor/OnThisDay";
 import { getTodaysFootballHistory, getFallbackFootballFact } from "@/lib/football-history";
+import { Mascot } from "@/components/predictor/Mascot";
 
 function pickLabelFor(
   model: { winHome: number; draw: number; winAway: number },
@@ -64,6 +65,7 @@ export default async function TodayPage() {
           className="absolute -top-32 -right-24 w-96 h-96 bg-lime"
           style={{ transform: "rotate(24deg)" }}
         />
+        <Mascot className="hidden sm:block absolute right-4 lg:right-20 bottom-0 w-40 lg:w-56 aspect-[320/390]" />
 
         <div className="relative max-w-6xl mx-auto px-5">
           <div className="flex items-center gap-2 mb-3 animate-fade-up">
