@@ -24,6 +24,19 @@ model User {
   acceptedTermsAt   DateTime?
   emailUpdatesOptIn Boolean   @default(false)
 
+  // 24h free-Pro trial window, set once at signup — grants PRO access in
+  // lib/auth.ts's jwt callback until it elapses, without ever touching
+  // Subscription (that model stays reserved for real Stripe state).
+  trialEndsAt DateTime?
+
+  // Referral program: every user gets a shareable code; referredById links
+  // a signup back to whoever's link they used. A reward is only granted
+  // (see ReferralReward) once the referred user actually pays.
+  referralCode String? @unique
+  referredById String?
+  referredBy   User?   @relation("Referrals", fields: [referredById], references: [id])
+  referrals    User[]  @relation("Referrals")
+
   accounts      Account[]
   sessions      Session[]
   subscription  Subscription?
@@ -31,8 +44,25 @@ model User {
   reviews       SiteReview[]
   suggestions   Suggestion[]
   redeemedCodes PromoCode[]
+  rewardsEarned ReferralReward[] @relation("RewardsEarned")
+  rewardCaused  ReferralReward?  @relation("RewardCaused")
 
   createdAt DateTime @default(now())
+}
+
+// One row per successful referral conversion (the referred user's first
+// paid Stripe subscription). percentOff is applied as a one-cycle discount
+// on the referrer's next invoice — see app/api/stripe/webhook/route.ts.
+model ReferralReward {
+  id             String    @id @default(cuid())
+  referrerId     String
+  referrer       User      @relation("RewardsEarned", fields: [referrerId], references: [id], onDelete: Cascade)
+  referredUserId String    @unique
+  referredUser   User      @relation("RewardCaused", fields: [referredUserId], references: [id], onDelete: Cascade)
+  percentOff     Int
+  stripeCouponId String?
+  appliedAt      DateTime?
+  createdAt      DateTime  @default(now())
 }
 
 model Account {

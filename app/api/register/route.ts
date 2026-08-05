@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
+import { generateReferralCode } from "@/lib/referral";
+
+const TRIAL_HOURS = 24;
 
 const schema = z.object({
   name: z.string().min(1).max(80),
@@ -15,6 +18,7 @@ const schema = z.object({
   dateOfBirth: z.string().min(1, "Συμπλήρωσε την ημερομηνία γέννησής σου."),
   acceptTerms: z.boolean().refine((v) => v === true, "Πρέπει να αποδεχτείς τους όρους χρήσης."),
   emailUpdatesOptIn: z.boolean().optional().default(false),
+  ref: z.string().trim().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -22,7 +26,7 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
-  const { name, username, email, password, dateOfBirth, emailUpdatesOptIn } = parsed.data;
+  const { name, username, email, password, dateOfBirth, emailUpdatesOptIn, ref } = parsed.data;
 
   const existing = await prisma.user.findFirst({ where: { OR: [{ email }, { username }] } });
   if (existing) {
@@ -33,19 +37,35 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const passwordHash = await bcrypt.hash(password, 12);
-  const user = await prisma.user.create({
-    data: {
-      name,
-      username,
-      email,
-      passwordHash,
-      dateOfBirth: new Date(dateOfBirth),
-      acceptedTermsAt: new Date(),
-      emailUpdatesOptIn,
-      subscription: { create: { plan: "FREE", status: "inactive" } },
-    },
-  });
+  const referrer = ref ? await prisma.user.findUnique({ where: { referralCode: ref } }) : null;
 
-  return NextResponse.json({ ok: true, userId: user.id });
+  const passwordHash = await bcrypt.hash(password, 12);
+
+  // Retry on the (astronomically unlikely) referralCode collision rather
+  // than letting the unique constraint 500 the whole signup.
+  let user;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      user = await prisma.user.create({
+        data: {
+          name,
+          username,
+          email,
+          passwordHash,
+          dateOfBirth: new Date(dateOfBirth),
+          acceptedTermsAt: new Date(),
+          emailUpdatesOptIn,
+          trialEndsAt: new Date(Date.now() + TRIAL_HOURS * 60 * 60 * 1000),
+          referralCode: generateReferralCode(),
+          referredById: referrer?.id,
+          subscription: { create: { plan: "FREE", status: "inactive" } },
+        },
+      });
+      break;
+    } catch (err) {
+      if (attempt === 2) throw err;
+    }
+  }
+
+  return NextResponse.json({ ok: true, userId: user!.id, trialHours: TRIAL_HOURS });
 }

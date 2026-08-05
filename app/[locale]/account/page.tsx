@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { ManageBillingButton } from "@/components/ManageBillingButton";
 import { PromoRedeemForm } from "@/components/PromoRedeemForm";
+import { ReferralCard } from "@/components/ReferralCard";
+import { generateReferralCode } from "@/lib/referral";
 
 export const dynamic = "force-dynamic";
 
@@ -11,17 +13,37 @@ export default async function AccountPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) redirect("/login");
 
-  const subscription = await prisma.subscription.findUnique({ where: { userId: session.user.id } });
+  const [subscription, user] = await Promise.all([
+    prisma.subscription.findUnique({ where: { userId: session.user.id } }),
+    prisma.user.findUnique({ where: { id: session.user.id }, include: { rewardsEarned: true } }),
+  ]);
   const isPro = subscription?.plan === "PRO" && subscription.status === "active";
+  const isTrialing = !!session.user.trialEndsAt;
+
+  // Accounts created before the referral program existed won't have a code
+  // yet — mint one on first visit rather than backfilling every row.
+  let referralCode = user?.referralCode;
+  if (!referralCode) {
+    referralCode = generateReferralCode();
+    await prisma.user.update({ where: { id: session.user.id }, data: { referralCode } });
+  }
+  const appliedRewards = user?.rewardsEarned.filter((r) => r.appliedAt).length ?? 0;
+  const pendingRewards = user?.rewardsEarned.filter((r) => !r.appliedAt).length ?? 0;
 
   return (
-    <div className="max-w-xs mx-auto px-5 py-16">
+    <div className="relative overflow-hidden flex items-center justify-center px-5 py-16 min-h-[calc(100vh-3.5rem)]">
+      <div className="absolute -top-32 -right-24 w-96 h-96 bg-lime" style={{ transform: "rotate(24deg)" }} />
+      <div className="absolute -bottom-40 -left-32 w-80 h-80 bg-lime/20" style={{ transform: "rotate(24deg)" }} />
+      <div className="relative w-full max-w-md">
       <h1 className="font-display text-3xl mb-8 font-extrabold text-ink tracking-tight">Ο λογαριασμός μου</h1>
       <div className="card p-5 mb-4">
         <div className="text-xs text-muted mb-1">Email</div>
         <div className="text-sm text-ink mb-4">{session.user.email}</div>
         <div className="text-xs text-muted mb-1">Πλάνο</div>
-        <div className="text-sm font-bold text-lime">{subscription?.plan ?? "FREE"}</div>
+        <div className="text-sm font-bold text-lime">
+          {subscription?.plan ?? "FREE"}
+          {isTrialing && <span className="text-ink font-normal text-xs"> (δωρεάν trial)</span>}
+        </div>
       </div>
       {subscription?.stripeCustomerId && (
         <div className="mb-4">
@@ -29,11 +51,15 @@ export default async function AccountPage() {
         </div>
       )}
       {!isPro && (
-        <div className="card p-5">
+        <div className="card p-5 mb-4">
           <div className="text-xs text-muted mb-2">Έχεις promo code;</div>
           <PromoRedeemForm />
         </div>
       )}
+      {referralCode && (
+        <ReferralCard referralCode={referralCode} appliedRewards={appliedRewards} pendingRewards={pendingRewards} />
+      )}
+      </div>
     </div>
   );
 }

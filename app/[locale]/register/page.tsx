@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const ref = searchParams.get("ref") ?? undefined;
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -25,7 +27,7 @@ export default function RegisterPage() {
     const res = await fetch("/api/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, username, email, password, dateOfBirth, acceptTerms, emailUpdatesOptIn }),
+      body: JSON.stringify({ name, username, email, password, dateOfBirth, acceptTerms, emailUpdatesOptIn, ref }),
     });
     const data = await res.json();
 
@@ -48,8 +50,14 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="max-w-xs mx-auto px-5 py-16">
-      <h1 className="font-display text-3xl mb-8 font-extrabold text-ink tracking-tight">Εγγραφή</h1>
+    <div className="relative overflow-hidden flex items-center justify-center px-5 py-16 min-h-[calc(100vh-3.5rem)]">
+      <div className="absolute -top-32 -right-24 w-96 h-96 bg-lime" style={{ transform: "rotate(24deg)" }} />
+      <div className="absolute -bottom-40 -left-32 w-80 h-80 bg-lime/20" style={{ transform: "rotate(24deg)" }} />
+      <div className="relative w-full max-w-sm">
+      <h1 className="font-display text-3xl mb-2 font-extrabold text-ink tracking-tight">Εγγραφή</h1>
+      <p className="text-[11px] text-lime font-bold mb-1.5">🎁 Δωρεάν πρόσβαση Pro για 24 ώρες με την εγγραφή σου.</p>
+      {ref && <p className="text-[11px] text-muted mb-6">Προσκλήθηκες από φίλο — καλωσόρισες!</p>}
+      {!ref && <div className="mb-6" />}
       <form onSubmit={onSubmit} className="card p-5 space-y-3">
         <input
           type="text"
@@ -133,6 +141,7 @@ export default function RegisterPage() {
           Σύνδεση
         </Link>
       </p>
+      </div>
     </div>
   );
 }

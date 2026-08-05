@@ -36,8 +36,8 @@ export function Footer() {
 
   return (
     <footer className="mt-16 border-t border-border/60 bg-fade-surface">
-      <div className="max-w-xl mx-auto px-5 py-10">
-        <div className="grid grid-cols-3 gap-4 mb-8">
+      <div className="max-w-6xl mx-auto px-5 py-10">
+        <div className="grid grid-cols-3 gap-4 md:gap-12 mb-8 md:max-w-xl">
           {COLUMNS.map((col) => (
             <div key={col.title}>
               <div className="text-[9px] uppercase tracking-[0.15em] font-mono text-dim mb-3">{col.title}</div>

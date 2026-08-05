@@ -6,6 +6,7 @@ import { routing } from "@/i18n/routing";
 import { Providers } from "@/components/Providers";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
+import { TrialBanner } from "@/components/TrialBanner";
 import "../globals.css";
 
 export const metadata: Metadata = {
@@ -30,6 +31,7 @@ export default async function RootLayout({
         <NextIntlClientProvider>
           <Providers>
             <Nav />
+            <TrialBanner />
             <div className="flex-1">{children}</div>
             <Footer />
           </Providers>

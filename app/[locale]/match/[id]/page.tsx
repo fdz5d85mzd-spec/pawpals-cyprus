@@ -50,7 +50,7 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
   });
 
   return (
-    <div className="max-w-xl mx-auto px-5 py-6 pb-16">
+    <div className="max-w-4xl mx-auto px-5 py-6 pb-16">
       <Link href="/" className="inline-flex items-center gap-1 text-xs mb-6 text-muted hover:text-ink transition-colors">
         <ChevronLeft size={14} /> Πίσω
       </Link>
@@ -160,7 +160,7 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
         <div className="mt-6">
           <Eyebrow>Λοιπές αγορές</Eyebrow>
         </div>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <Stat label="BTTS (GG)" value={`${model.bttsYes}%`} />
           <Stat label="Κόρνερ O9.5" value={`${model.cornersOver95}%`} sub={`~${model.corners} αναμ.`} />
           <Stat label="Κάρτες O4.5" value={`${model.cardsOver45}%`} sub={`~${model.cards} αναμ.`} />
@@ -183,8 +183,9 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
         <div className="mt-6">
           <Eyebrow>Βασικοί παίχτες</Eyebrow>
         </div>
+        <div className="grid sm:grid-cols-2 gap-1.5">
         {[...home.keyPlayers, ...away.keyPlayers].map((p) => (
-          <div key={p.id} className="card-interactive flex items-center justify-between py-2.5 px-4 mb-1.5">
+          <div key={p.id} className="card-interactive flex items-center justify-between py-2.5 px-4">
             <div>
               <div className="text-xs font-medium text-ink">{p.name}</div>
               <div className="text-[10px] text-muted">
@@ -200,6 +201,7 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
             </span>
           </div>
         ))}
+        </div>
       </ProGate>
 
       <Comments

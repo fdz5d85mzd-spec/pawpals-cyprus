@@ -29,7 +29,7 @@ export default async function TeamPage({ params }: { params: Promise<{ id: strin
   ]);
 
   return (
-    <div className="max-w-xl mx-auto px-5 py-6 pb-16">
+    <div className="max-w-4xl mx-auto px-5 py-6 pb-16">
       <Link href="/" className="inline-flex items-center gap-1 text-xs mb-6 text-muted hover:text-ink transition-colors">
         <ChevronLeft size={14} /> Πίσω
       </Link>
@@ -47,7 +47,7 @@ export default async function TeamPage({ params }: { params: Promise<{ id: strin
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-8">
         <Stat label="Γκολ υπέρ (μ.ό.)" value={team.avgGoalsFor?.toFixed(2) ?? "—"} />
         <Stat label="Γκολ κατά (μ.ό.)" value={team.avgGoalsAgainst?.toFixed(2) ?? "—"} />
         {standing && (
@@ -61,7 +61,7 @@ export default async function TeamPage({ params }: { params: Promise<{ id: strin
       {team.keyPlayers.length > 0 && (
         <>
           <Eyebrow>Βασικοί παίχτες</Eyebrow>
-          <div className="space-y-1.5 mb-8">
+          <div className="grid sm:grid-cols-2 gap-1.5 mb-8">
             {team.keyPlayers.map((p) => (
               <div key={p.id} className="card-interactive flex items-center justify-between py-2.5 px-4">
                 <div>
@@ -89,7 +89,7 @@ export default async function TeamPage({ params }: { params: Promise<{ id: strin
           <div className="text-xs text-dim">Δεν υπάρχουν ακόμα καταγεγραμμένα αποτελέσματα.</div>
         </div>
       )}
-      <div className="space-y-1.5">
+      <div className="grid sm:grid-cols-2 gap-1.5">
         {recent.map((f) => {
           const isHome = f.homeTeamId === teamId;
           const own = isHome ? f.homeGoals : f.awayGoals;

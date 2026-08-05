@@ -34,7 +34,7 @@ export default async function HistoryPage() {
   }
 
   return (
-    <div className="max-w-xl mx-auto px-5 pt-8 pb-16">
+    <div className="max-w-3xl mx-auto px-5 pt-8 pb-16">
       <div className="flex items-center gap-2 mb-2 animate-fade-up">
         <Gauge size={16} className="text-lime" />
         <span className="text-[10px] tracking-[0.2em] uppercase font-mono text-dim">Διαφάνεια μοντέλου</span>
@@ -54,7 +54,7 @@ export default async function HistoryPage() {
       {byMarket.size > 0 && (
         <>
           <Eyebrow>Ανά αγορά</Eyebrow>
-          <div className="grid grid-cols-2 gap-2 mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-8">
             {Array.from(byMarket.entries()).map(([market, { total, hits }]) => (
               <div key={market} className="card p-3.5">
                 <div className="text-[9px] uppercase tracking-wide font-mono mb-1.5 text-dim">

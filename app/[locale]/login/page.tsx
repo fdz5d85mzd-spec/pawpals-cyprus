@@ -27,7 +27,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="max-w-xs mx-auto px-5 py-16">
+    <div className="relative overflow-hidden flex items-center justify-center px-5 py-16 min-h-[calc(100vh-3.5rem)]">
+      <div className="absolute -top-32 -right-24 w-96 h-96 bg-lime" style={{ transform: "rotate(24deg)" }} />
+      <div className="absolute -bottom-40 -left-32 w-80 h-80 bg-lime/20" style={{ transform: "rotate(24deg)" }} />
+      <div className="relative w-full max-w-sm">
       <h1 className="font-display text-3xl mb-8 font-extrabold text-ink tracking-tight">Σύνδεση</h1>
       <form onSubmit={onSubmit} className="card p-5 space-y-3">
         <input
@@ -57,6 +60,7 @@ export default function LoginPage() {
           Εγγραφή
         </Link>
       </p>
+      </div>
     </div>
   );
 }

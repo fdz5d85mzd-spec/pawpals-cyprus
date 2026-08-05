@@ -29,7 +29,7 @@ export default async function ReviewsPage() {
   const avg = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
 
   return (
-    <div className="max-w-xl mx-auto px-5 pt-8 pb-16">
+    <div className="max-w-3xl mx-auto px-5 pt-8 pb-16">
       <div className="flex items-center gap-2 mb-2 animate-fade-up">
         <Star size={16} className="text-lime fill-lime" />
         <span className="text-[10px] tracking-[0.2em] uppercase font-mono text-dim">Αξιολογήσεις</span>
@@ -61,7 +61,7 @@ export default async function ReviewsPage() {
       )}
 
       <Eyebrow>Όλες οι αξιολογήσεις</Eyebrow>
-      <div className="space-y-2">
+      <div className="grid sm:grid-cols-2 gap-2">
         {reviews.map((r) => (
           <div key={r.id} className="card p-4">
             <div className="flex items-center justify-between mb-1.5">
