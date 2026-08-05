@@ -8,6 +8,7 @@ import Link from "next/link";
 export default function RegisterPage() {
   const router = useRouter();
   const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
@@ -24,13 +25,19 @@ export default function RegisterPage() {
     const res = await fetch("/api/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password, dateOfBirth, acceptTerms, emailUpdatesOptIn }),
+      body: JSON.stringify({ name, username, email, password, dateOfBirth, acceptTerms, emailUpdatesOptIn }),
     });
     const data = await res.json();
 
     if (!res.ok) {
       setLoading(false);
-      setError(data.error?.formErrors?.[0] ?? data.error?.fieldErrors?.acceptTerms?.[0] ?? data.error ?? "Κάτι πήγε στραβά.");
+      setError(
+        data.error?.formErrors?.[0] ??
+          data.error?.fieldErrors?.username?.[0] ??
+          data.error?.fieldErrors?.acceptTerms?.[0] ??
+          data.error ??
+          "Κάτι πήγε στραβά."
+      );
       return;
     }
 
@@ -50,6 +57,14 @@ export default function RegisterPage() {
           placeholder="Όνομα"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          className="input"
+        />
+        <input
+          type="text"
+          required
+          placeholder="Username (θα φαίνεται στα σχόλιά σου)"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
           className="input"
         />
         <input

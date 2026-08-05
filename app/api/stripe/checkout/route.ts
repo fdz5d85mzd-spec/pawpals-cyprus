@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/db";
+import { EARLY_BIRD_LIMIT } from "@/lib/pricing";
 
 // Creates a Stripe Checkout session for the Pro monthly plan. The webhook
 // (see app/api/stripe/webhook/route.ts) is what actually flips the user's
@@ -38,10 +39,22 @@ export async function POST() {
       });
     }
 
+    // First EARLY_BIRD_LIMIT paying subscribers get 20% off, applied
+    // automatically — no code needed. Only kicks in if the coupon has
+    // actually been created in Stripe (STRIPE_EARLY_BIRD_COUPON_ID set).
+    let discounts: { coupon: string }[] | undefined;
+    if (process.env.STRIPE_EARLY_BIRD_COUPON_ID) {
+      const activeCount = await prisma.subscription.count({ where: { plan: "PRO", status: "active" } });
+      if (activeCount < EARLY_BIRD_LIMIT) {
+        discounts = [{ coupon: process.env.STRIPE_EARLY_BIRD_COUPON_ID }];
+      }
+    }
+
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: "subscription",
       customer: customerId,
       line_items: [{ price: process.env.STRIPE_PRICE_PRO_MONTHLY, quantity: 1 }],
+      ...(discounts ? { discounts } : {}),
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/account?checkout=success`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing?checkout=cancelled`,
       metadata: { userId: user.id },

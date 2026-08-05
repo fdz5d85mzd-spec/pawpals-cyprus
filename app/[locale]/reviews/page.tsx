@@ -65,7 +65,7 @@ export default async function ReviewsPage() {
         {reviews.map((r) => (
           <div key={r.id} className="card p-4">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs font-bold text-ink">{r.user.name ?? "Χρήστης"}</span>
+              <span className="text-xs font-bold text-ink">{r.user.username ?? r.user.name ?? "Χρήστης"}</span>
               <Stars rating={r.rating} />
             </div>
             {r.body && <p className="text-xs text-muted leading-relaxed">{r.body}</p>}

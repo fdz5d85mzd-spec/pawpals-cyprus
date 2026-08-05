@@ -60,7 +60,7 @@ export default async function SuggestionsPage() {
         {suggestions.map((s) => (
           <div key={s.id} className="card p-4">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs font-bold text-ink">{s.user.name ?? "Χρήστης"}</span>
+              <span className="text-xs font-bold text-ink">{s.user.username ?? s.user.name ?? "Χρήστης"}</span>
               <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold font-mono ${STATUS_CLASS[s.status]}`}>
                 {STATUS_LABEL[s.status]}
               </span>

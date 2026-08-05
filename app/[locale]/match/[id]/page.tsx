@@ -208,7 +208,7 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
           id: c.id,
           body: c.body,
           createdAt: c.createdAt.toISOString(),
-          userName: c.user.name ?? c.user.email,
+          userName: c.user.username ?? c.user.name ?? c.user.email,
         }))}
       />
     </div>

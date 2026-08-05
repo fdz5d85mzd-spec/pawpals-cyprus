@@ -59,6 +59,8 @@
     "promoQuestion": "Have a promo code instead of a card?",
     "promoLoginPrompt": "Log in to use it",
     "legalNotice": "Skorama is a statistical analysis tool, not a betting service. It offers no guaranteed profits — probabilities come from a mathematical model built on historical data. By signing up you accept the",
-    "termsLink": "Terms of Use"
+    "termsLink": "Terms of Use",
+    "subscriberCount": "{count} subscribers already trust us",
+    "earlyBird": "20% off for the first 100 — {count} spots left"
   }
 }

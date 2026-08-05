@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
-import { Check, Crown } from "lucide-react";
+import { Check, Crown, Flame, Users } from "lucide-react";
 import { PromoRedeemForm } from "@/components/PromoRedeemForm";
 
 export default function PricingPage() {
@@ -13,6 +13,18 @@ export default function PricingPage() {
   const t = useTranslations("pricing");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [subCount, setSubCount] = useState<number | null>(null);
+  const [earlyBirdSpotsLeft, setEarlyBirdSpotsLeft] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetch("/api/subscribers-count")
+      .then((r) => r.json())
+      .then((d) => {
+        setSubCount(d.count);
+        setEarlyBirdSpotsLeft(d.earlyBirdSpotsLeft);
+      })
+      .catch(() => {});
+  }, []);
 
   const freeFeatures = t.raw("freeFeatures") as string[];
   const proFeatures = t.raw("proFeatures") as string[];
@@ -42,9 +54,15 @@ export default function PricingPage() {
   return (
     <div className="max-w-xl mx-auto px-5 pt-5 pb-16">
       <div className="text-[10px] tracking-[0.2em] uppercase font-mono mb-1.5 text-dim animate-fade-up">{t("kicker")}</div>
-      <h1 className="font-display text-2xl sm:text-4xl mb-4 font-extrabold text-ink tracking-tight animate-fade-up" style={{ animationDelay: "60ms" }}>
+      <h1 className="font-display text-2xl sm:text-4xl mb-2 font-extrabold text-ink tracking-tight animate-fade-up" style={{ animationDelay: "60ms" }}>
         {t("title")}
       </h1>
+      {subCount !== null && subCount > 0 && (
+        <div className="flex items-center gap-1.5 mb-4 text-[11px] text-dim">
+          <Users size={12} />
+          <span>{t("subscriberCount", { count: subCount })}</span>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-3">
         <div className="card p-5 animate-fade-up" style={{ animationDelay: "120ms" }}>
@@ -65,9 +83,15 @@ export default function PricingPage() {
             <Crown size={10} /> {t("popular")}
           </div>
           <div className="text-[10px] uppercase tracking-wide font-mono mb-3 text-lime">{t("pro")}</div>
-          <div className="font-display text-3xl mb-5 text-ink font-extrabold">
+          <div className="font-display text-3xl mb-3 text-ink font-extrabold">
             6,99€<span className="text-sm text-muted font-normal">{t("perMonth")}</span>
           </div>
+          {earlyBirdSpotsLeft !== null && earlyBirdSpotsLeft > 0 && (
+            <div className="flex items-center gap-1.5 mb-5 px-2.5 py-1.5 bg-lime/10 border border-lime/30 text-[11px] text-lime font-bold">
+              <Flame size={12} />
+              {t("earlyBird", { count: earlyBirdSpotsLeft })}
+            </div>
+          )}
           <ul className="text-xs space-y-2.5 mb-6 text-muted">
             {proFeatures.map((f) => (
               <li key={f} className="flex items-start gap-2">
