@@ -41,8 +41,16 @@ export const authOptions: AuthOptions = {
     async jwt({ token, user }) {
       if (user) token.userId = user.id;
       if (token.userId) {
-        const sub = await prisma.subscription.findUnique({ where: { userId: token.userId as string } });
-        token.plan = sub?.status === "active" ? sub.plan : "FREE";
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.userId as string },
+          include: { subscription: true },
+        });
+        const activePaid = dbUser?.subscription?.status === "active" && dbUser.subscription.plan === "PRO";
+        const inTrial = !!dbUser?.trialEndsAt && dbUser.trialEndsAt.getTime() > Date.now();
+        token.plan = activePaid || inTrial ? "PRO" : "FREE";
+        // Only surface the trial countdown while it's the reason for PRO
+        // access — a real paying user doesn't need a "trial ending" clock.
+        token.trialEndsAt = inTrial && !activePaid ? dbUser!.trialEndsAt!.toISOString() : null;
       }
       return token;
     },
@@ -50,6 +58,7 @@ export const authOptions: AuthOptions = {
       if (session.user) {
         (session.user as { id?: string }).id = token.userId as string;
         (session.user as { plan?: string }).plan = (token.plan as string) ?? "FREE";
+        (session.user as { trialEndsAt?: string | null }).trialEndsAt = (token.trialEndsAt as string | null) ?? null;
       }
       return session;
     },

@@ -1,9 +1,90 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
+import { Prisma } from "@prisma/client";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/db";
+import { REFERRAL_DISCOUNT_PERCENT } from "@/lib/referral";
+import { getReferralCouponId } from "@/lib/referral-coupon";
+import { commissionCents } from "@/lib/affiliate";
 
 export const dynamic = "force-dynamic";
+
+// Real cash commission for the affiliate/partner program (separate from the
+// referral discount above). Deliberately fed ONLY from invoice.paid for
+// subscription plans — Stripe raises an invoice.paid for a brand-new
+// subscription's first payment too, so also granting from
+// checkout.session.completed would double-credit it. Lifetime is the one
+// exception: it's a plain one-time Checkout payment with no Invoice object
+// at all, so that case grants directly from checkout.session.completed.
+async function grantAffiliateCommission({
+  userId,
+  amountCents,
+  plan,
+  stripeEventId,
+}: {
+  userId: string;
+  amountCents: number;
+  plan: string;
+  stripeEventId: string;
+}) {
+  if (amountCents <= 0) return;
+  const referredUser = await prisma.user.findUnique({ where: { id: userId } });
+  if (!referredUser?.referredByAffiliateId) return;
+
+  const affiliate = await prisma.affiliate.findUnique({ where: { id: referredUser.referredByAffiliateId } });
+  if (!affiliate) return;
+
+  try {
+    await prisma.affiliateCommission.create({
+      data: {
+        affiliateId: affiliate.id,
+        referredUserId: userId,
+        amountCents: commissionCents(amountCents, affiliate.commissionPercent),
+        plan,
+        stripeEventId,
+      },
+    });
+  } catch (err) {
+    // Unique constraint on stripeEventId — Stripe's at-least-once delivery
+    // means we'll see the same event again; that's expected, not an error.
+    if (!(err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002")) throw err;
+  }
+}
+
+// Fires once, the first time a referred user completes ANY successful
+// checkout (subscription or lifetime). Creates the reward row exactly once
+// (unique on referredUserId) and, if the referrer already has an active
+// paid subscription, applies the discount to their very next invoice right
+// away. If the referrer isn't subscribed yet, the reward stays unapplied
+// and the checkout route picks it up the next time *they* check out.
+async function grantReferralRewardIfEligible(referredUserId: string) {
+  const referredUser = await prisma.user.findUnique({ where: { id: referredUserId } });
+  if (!referredUser?.referredById) return;
+
+  const existingReward = await prisma.referralReward.findUnique({ where: { referredUserId } });
+  if (existingReward) return;
+
+  const reward = await prisma.referralReward.create({
+    data: { referrerId: referredUser.referredById, referredUserId, percentOff: REFERRAL_DISCOUNT_PERCENT },
+  });
+
+  const referrerSub = await prisma.subscription.findUnique({ where: { userId: referredUser.referredById } });
+  if (referrerSub?.stripeSubscriptionId && referrerSub.status === "active") {
+    const couponId = await getReferralCouponId();
+    await stripe.subscriptions.update(referrerSub.stripeSubscriptionId, { discounts: [{ coupon: couponId }] });
+    await prisma.referralReward.update({ where: { id: reward.id }, data: { stripeCouponId: couponId, appliedAt: new Date() } });
+  }
+}
+
+// The referrer's own checkout (see app/api/stripe/checkout/route.ts) tags
+// the session with the pending reward it attached a coupon for — once that
+// checkout actually completes, mark the reward applied so it isn't reused.
+async function markReferralRewardApplied(rewardId: string, couponId: string) {
+  await prisma.referralReward.update({
+    where: { id: rewardId },
+    data: { stripeCouponId: couponId, appliedAt: new Date() },
+  });
+}
 
 async function upsertFromSubscription(sub: Stripe.Subscription) {
   const userId = sub.metadata.userId;
@@ -76,13 +157,50 @@ export async function POST(req: NextRequest) {
             create: { userId, plan: "PRO", status: "active", stripeCustomerId: customerId },
             update: { plan: "PRO", status: "active" },
           });
+          await grantAffiliateCommission({
+            userId,
+            amountCents: checkoutSession.amount_total ?? 0,
+            plan: "lifetime",
+            stripeEventId: event.id,
+          });
         }
+      }
+
+      // Two independent referral touchpoints on the same event: the payer
+      // may themselves have been referred (grants a NEW reward to whoever
+      // invited them), and/or this checkout may have redeemed a reward THEY
+      // already earned (the coupon we attached in the checkout route).
+      if (checkoutSession.metadata?.userId) {
+        await grantReferralRewardIfEligible(checkoutSession.metadata.userId);
+      }
+      if (checkoutSession.metadata?.referralRewardId) {
+        const couponId = await getReferralCouponId();
+        await markReferralRewardApplied(checkoutSession.metadata.referralRewardId, couponId);
       }
       break;
     }
     case "customer.subscription.updated":
     case "customer.subscription.deleted": {
       await upsertFromSubscription(event.data.object as Stripe.Subscription);
+      break;
+    }
+    case "invoice.paid": {
+      // Covers both the first payment of a new monthly/annual subscription
+      // and every renewal after it — see grantAffiliateCommission's comment
+      // for why lifetime is handled separately above instead of here.
+      const invoice = event.data.object as Stripe.Invoice;
+      const customerId = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
+      if (customerId && invoice.amount_paid > 0) {
+        const sub = await prisma.subscription.findUnique({ where: { stripeCustomerId: customerId } });
+        if (sub) {
+          await grantAffiliateCommission({
+            userId: sub.userId,
+            amountCents: invoice.amount_paid,
+            plan: "subscription",
+            stripeEventId: event.id,
+          });
+        }
+      }
       break;
     }
     default:

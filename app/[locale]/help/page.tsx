@@ -34,7 +34,7 @@ export default function HelpPage() {
   }
 
   return (
-    <div className="max-w-xl mx-auto px-5 pt-8 pb-16">
+    <div className="max-w-2xl mx-auto px-5 pt-8 pb-16">
       <div className="flex items-center gap-2 mb-2 animate-fade-up">
         <LifeBuoy size={16} className="text-lime" />
         <span className="text-[10px] tracking-[0.2em] uppercase font-mono text-dim">Υποστήριξη</span>

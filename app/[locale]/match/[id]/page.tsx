@@ -1,12 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getServerSession } from "next-auth";
 import { ChevronLeft, Clock } from "lucide-react";
 import { prisma } from "@/lib/db";
+import { authOptions } from "@/lib/auth";
 import { presentPrediction, hoursUntil } from "@/lib/present";
 import { getCurrentPlan } from "@/lib/plan";
 import { Eyebrow, Bar, Stat, Row, FormPill, ProGate } from "@/components/predictor/ui";
 import { ScoreHeatmap } from "@/components/predictor/ScoreHeatmap";
 import { Comments } from "@/components/predictor/Comments";
+import { PickWidget } from "@/components/predictor/PickWidget";
 import { buildMatchNarrative } from "@/lib/narrative";
 import type { FormResult } from "@/lib/model";
 
@@ -17,7 +20,9 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
   const fixtureId = Number(id);
   if (Number.isNaN(fixtureId)) notFound();
 
-  const [fixture, plan, comments] = await Promise.all([
+  const session = await getServerSession(authOptions);
+
+  const [fixture, plan, comments, userPick] = await Promise.all([
     prisma.fixture.findUnique({
       where: { id: fixtureId },
       include: { homeTeam: { include: { keyPlayers: true } }, awayTeam: { include: { keyPlayers: true } }, prediction: true },
@@ -29,6 +34,9 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
       orderBy: { createdAt: "desc" },
       take: 50,
     }),
+    session?.user?.id
+      ? prisma.userPick.findUnique({ where: { userId_fixtureId: { userId: session.user.id, fixtureId } } })
+      : null,
   ]);
 
   if (!fixture || !fixture.prediction) notFound();
@@ -38,6 +46,7 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
   const isPro = plan === "PRO";
   const home = fixture.homeTeam;
   const away = fixture.awayTeam;
+  const pickLocked = fixture.status !== "SCHEDULED" || fixture.kickoff <= new Date();
 
   const narrative = buildMatchNarrative({
     homeName: home.name,
@@ -50,7 +59,7 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
   });
 
   return (
-    <div className="max-w-xl mx-auto px-5 py-6 pb-16">
+    <div className="max-w-4xl mx-auto px-5 py-6 pb-16">
       <Link href="/" className="inline-flex items-center gap-1 text-xs mb-6 text-muted hover:text-ink transition-colors">
         <ChevronLeft size={14} /> Πίσω
       </Link>
@@ -90,6 +99,18 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
           <span>λ {model.lambdaHome.toFixed(2)}</span>
           <span>λ {model.lambdaAway.toFixed(2)}</span>
         </div>
+      </div>
+
+      <div className="mb-6">
+        <PickWidget
+          fixtureId={fixture.id}
+          homeName={home.name}
+          awayName={away.name}
+          isLoggedIn={Boolean(session?.user?.id)}
+          locked={pickLocked}
+          initialPick={userPick?.pick ?? null}
+          hit={userPick?.hit ?? null}
+        />
       </div>
 
       <div className="card p-5 mb-6">
@@ -160,7 +181,7 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
         <div className="mt-6">
           <Eyebrow>Λοιπές αγορές</Eyebrow>
         </div>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <Stat label="BTTS (GG)" value={`${model.bttsYes}%`} />
           <Stat label="Κόρνερ O9.5" value={`${model.cornersOver95}%`} sub={`~${model.corners} αναμ.`} />
           <Stat label="Κάρτες O4.5" value={`${model.cardsOver45}%`} sub={`~${model.cards} αναμ.`} />
@@ -183,8 +204,9 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
         <div className="mt-6">
           <Eyebrow>Βασικοί παίχτες</Eyebrow>
         </div>
+        <div className="grid sm:grid-cols-2 gap-1.5">
         {[...home.keyPlayers, ...away.keyPlayers].map((p) => (
-          <div key={p.id} className="card-interactive flex items-center justify-between py-2.5 px-4 mb-1.5">
+          <div key={p.id} className="card-interactive flex items-center justify-between py-2.5 px-4">
             <div>
               <div className="text-xs font-medium text-ink">{p.name}</div>
               <div className="text-[10px] text-muted">
@@ -200,6 +222,7 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
             </span>
           </div>
         ))}
+        </div>
       </ProGate>
 
       <Comments

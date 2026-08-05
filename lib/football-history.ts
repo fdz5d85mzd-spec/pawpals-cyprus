@@ -31,6 +31,13 @@ export function getTodaysFootballHistory(date: Date = new Date()): HistoryFact |
   return FOOTBALL_HISTORY.find((f) => f.month === month && f.day === day);
 }
 
+// Full archive for the /on-this-day page — the homepage widget only ever
+// shows today's single fact, so this is what keeps every previous day's
+// entry browsable instead of disappearing once the calendar moves on.
+export function getAllFootballHistorySorted(): HistoryFact[] {
+  return [...FOOTBALL_HISTORY].sort((a, b) => a.month - b.month || a.day - b.day);
+}
+
 // Evergreen, non-dated trivia shown when today has no verified "on this
 // day" entry — kept to facts confirmed against well-established rules/
 // history rather than guessed, same accuracy bar as FOOTBALL_HISTORY.

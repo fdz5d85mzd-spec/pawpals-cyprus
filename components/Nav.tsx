@@ -27,7 +27,7 @@ export function Nav() {
 
   return (
     <header className="sticky top-0 z-40 border-b-2 border-lime bg-bg">
-      <div className="max-w-3xl mx-auto px-5 h-14 flex items-center justify-between gap-3">
+      <div className="max-w-6xl mx-auto px-5 h-14 flex items-center justify-between gap-3">
         <Link href="/" className="flex items-center gap-2 shrink-0" onClick={() => setOpen(false)}>
           <span className="w-7 h-7 bg-lime text-bg font-display font-extrabold text-sm flex items-center justify-center">
             S

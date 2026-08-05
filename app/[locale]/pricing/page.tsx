@@ -64,7 +64,7 @@ export default function PricingPage() {
   }
 
   return (
-    <div className="max-w-xl mx-auto px-5 pt-5 pb-16">
+    <div className="max-w-4xl mx-auto px-5 pt-5 pb-16">
       <div className="text-[10px] tracking-[0.2em] uppercase font-mono mb-1.5 text-dim animate-fade-up">{t("kicker")}</div>
       <h1 className="font-display text-2xl sm:text-4xl mb-2 font-extrabold text-ink tracking-tight animate-fade-up" style={{ animationDelay: "60ms" }}>
         {t("title")}
@@ -76,8 +76,8 @@ export default function PricingPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-3">
-        <div className="card p-5 animate-fade-up" style={{ animationDelay: "120ms" }}>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:items-start">
+        <div className="card p-5 lg:p-6 animate-fade-up" style={{ animationDelay: "120ms" }}>
           <div className="text-[10px] uppercase tracking-wide font-mono mb-2 text-dim">{t("free")}</div>
           <div className="font-display text-3xl mb-3 text-ink font-extrabold">0€</div>
           <ul className="text-xs space-y-2 text-muted">
@@ -90,7 +90,7 @@ export default function PricingPage() {
           </ul>
         </div>
 
-        <div className="card p-5 relative overflow-hidden border-lime/50 animate-fade-up" style={{ animationDelay: "180ms" }}>
+        <div className="card p-5 lg:p-6 relative overflow-hidden border-lime/50 animate-fade-up" style={{ animationDelay: "180ms" }}>
           <div className="absolute top-0 right-0 bg-lime text-bg text-[9px] font-bold font-mono px-3 py-1 rounded-bl-xl flex items-center gap-1">
             <Crown size={10} /> {t("popular")}
           </div>

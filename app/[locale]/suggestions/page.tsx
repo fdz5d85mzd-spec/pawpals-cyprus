@@ -30,7 +30,7 @@ export default async function SuggestionsPage() {
   });
 
   return (
-    <div className="max-w-xl mx-auto px-5 pt-8 pb-16">
+    <div className="max-w-3xl mx-auto px-5 pt-8 pb-16">
       <div className="flex items-center gap-2 mb-2 animate-fade-up">
         <Lightbulb size={16} className="text-lime" />
         <span className="text-[10px] tracking-[0.2em] uppercase font-mono text-dim">Εισηγήσεις</span>
@@ -53,10 +53,10 @@ export default async function SuggestionsPage() {
       )}
 
       <Eyebrow>Όλες οι εισηγήσεις</Eyebrow>
-      <div className="space-y-2">
-        {suggestions.length === 0 && (
-          <div className="card p-6 text-center text-xs text-dim">Δεν υπάρχουν ακόμα εισηγήσεις — γράψε την πρώτη!</div>
-        )}
+      {suggestions.length === 0 && (
+        <div className="card p-6 text-center text-xs text-dim">Δεν υπάρχουν ακόμα εισηγήσεις — γράψε την πρώτη!</div>
+      )}
+      <div className="grid sm:grid-cols-2 gap-2">
         {suggestions.map((s) => (
           <div key={s.id} className="card p-4">
             <div className="flex items-center justify-between mb-1.5">

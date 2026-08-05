@@ -14,7 +14,7 @@ export default async function StandingsPage({ searchParams }: { searchParams: Pr
   });
 
   return (
-    <div className="max-w-2xl mx-auto px-5 pt-8 pb-16">
+    <div className="max-w-4xl mx-auto px-5 pt-8 pb-16">
       <div className="flex items-center gap-2 mb-2 animate-fade-up">
         <ListOrdered size={16} className="text-lime" />
         <span className="text-[10px] tracking-[0.2em] uppercase font-mono text-dim">Πρωταθλήματα</span>
