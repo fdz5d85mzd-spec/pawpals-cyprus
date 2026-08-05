@@ -9,6 +9,7 @@ import { Footer } from "@/components/Footer";
 import { TrialBanner } from "@/components/TrialBanner";
 import { SignupPopup } from "@/components/SignupPopup";
 import { AffiliatePopup } from "@/components/AffiliatePopup";
+import { InstallAppBanner } from "@/components/InstallAppBanner";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { AffiliateTracker } from "@/components/AffiliateTracker";
 import "../globals.css";
@@ -43,6 +44,7 @@ export default async function RootLayout({
             <Footer />
             <SignupPopup />
             <AffiliatePopup />
+            <InstallAppBanner />
           </Providers>
         </NextIntlClientProvider>
         <ServiceWorkerRegister />
