@@ -76,6 +76,14 @@
     "annualSavings": "Save ~28% compared to monthly billing",
     "lifetimeNote": "One payment, access forever"
   },
+  "signupPopup": {
+    "kicker": "Limited offer",
+    "title": "20% off your first Pro subscription",
+    "body": "Sign up for free now while spots last.",
+    "cta": "Sign up free",
+    "dismiss": "Not now",
+    "close": "Close"
+  },
   "onThisDay": {
     "kicker": "History",
     "title": "On this day in football",

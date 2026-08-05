@@ -7,6 +7,7 @@ import { Providers } from "@/components/Providers";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { TrialBanner } from "@/components/TrialBanner";
+import { SignupPopup } from "@/components/SignupPopup";
 import "../globals.css";
 
 export const metadata: Metadata = {
@@ -34,6 +35,7 @@ export default async function RootLayout({
             <TrialBanner />
             <div className="flex-1">{children}</div>
             <Footer />
+            <SignupPopup />
           </Providers>
         </NextIntlClientProvider>
         <Analytics />
