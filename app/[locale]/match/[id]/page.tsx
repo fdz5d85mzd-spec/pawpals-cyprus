@@ -11,6 +11,7 @@ import { ScoreHeatmap } from "@/components/predictor/ScoreHeatmap";
 import { Comments } from "@/components/predictor/Comments";
 import { PickWidget } from "@/components/predictor/PickWidget";
 import { buildMatchNarrative } from "@/lib/narrative";
+import { getStreaks } from "@/lib/streak";
 import type { FormResult } from "@/lib/model";
 
 export const dynamic = "force-dynamic";
@@ -40,6 +41,8 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
   ]);
 
   if (!fixture || !fixture.prediction) notFound();
+
+  const commentStreaks = await getStreaks([...new Set(comments.map((c) => c.userId))]);
 
   const model = presentPrediction(fixture.prediction);
   const hrs = hoursUntil(fixture.kickoff);
@@ -232,6 +235,7 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
           body: c.body,
           createdAt: c.createdAt.toISOString(),
           userName: c.user.username ?? c.user.name ?? c.user.email,
+          streak: commentStreaks.get(c.userId),
         }))}
       />
     </div>

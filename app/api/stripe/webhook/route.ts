@@ -6,6 +6,8 @@ import { prisma } from "@/lib/db";
 import { REFERRAL_DISCOUNT_PERCENT } from "@/lib/referral";
 import { getReferralCouponId } from "@/lib/referral-coupon";
 import { commissionCents } from "@/lib/affiliate";
+import { getResendClient, DIGEST_FROM } from "@/lib/resend";
+import { buildAbandonmentEmail } from "@/lib/cart-abandonment-email";
 
 export const dynamic = "force-dynamic";
 
@@ -199,6 +201,27 @@ export async function POST(req: NextRequest) {
             plan: "subscription",
             stripeEventId: event.id,
           });
+        }
+      }
+      break;
+    }
+    case "checkout.session.expired": {
+      // A checkout link Stripe itself expires ~24h after creation if never
+      // completed — a clean, free abandonment signal with no extra
+      // scheduling infra needed. Best-effort: a missing RESEND_API_KEY or a
+      // send failure here must never surface as a webhook error to Stripe
+      // (it would just retry forever).
+      const checkoutSession = event.data.object as Stripe.Checkout.Session;
+      const userId = checkoutSession.metadata?.userId;
+      if (userId && process.env.RESEND_API_KEY) {
+        try {
+          const user = await prisma.user.findUnique({ where: { id: userId } });
+          if (user) {
+            const { subject, html } = buildAbandonmentEmail();
+            await getResendClient().emails.send({ from: DIGEST_FROM, to: user.email, subject, html });
+          }
+        } catch {
+          // Swallow — see comment above.
         }
       }
       break;

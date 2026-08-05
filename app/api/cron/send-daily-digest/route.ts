@@ -5,6 +5,8 @@ import { presentPrediction } from "@/lib/present";
 import { getResendClient, DIGEST_FROM } from "@/lib/resend";
 import { buildDigestEmail, type DigestPick } from "@/lib/digest-email";
 import { getWebPushClient } from "@/lib/push";
+import { getOverallAccuracy } from "@/lib/accuracy";
+import { buildWeeklyRecapEmail } from "@/lib/weekly-recap-email";
 
 export const dynamic = "force-dynamic";
 
@@ -95,5 +97,24 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ ok: true, sent, recipients: recipients.length, pushSent, errors });
+  // Weekly recap rides the same daily cron instead of needing its own
+  // schedule entry — it just no-ops on the other six days.
+  let weeklyRecapSent = 0;
+  if (new Date().getUTCDay() === 0) {
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const weekly = await getOverallAccuracy(sevenDaysAgo);
+    if (weekly.total > 0) {
+      const { subject, html } = buildWeeklyRecapEmail(weekly);
+      for (const { email } of recipients) {
+        try {
+          await resend.emails.send({ from: DIGEST_FROM, to: email, subject, html });
+          weeklyRecapSent++;
+        } catch {
+          // Best-effort — the daily digest above already reported per-email errors.
+        }
+      }
+    }
+  }
+
+  return NextResponse.json({ ok: true, sent, recipients: recipients.length, pushSent, weeklyRecapSent, errors });
 }

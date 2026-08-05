@@ -12,6 +12,8 @@ import { Ticker } from "@/components/predictor/Ticker";
 import { OnThisDay } from "@/components/predictor/OnThisDay";
 import { getTodaysFootballHistory, getFallbackFootballFact } from "@/lib/football-history";
 import { Mascot } from "@/components/predictor/Mascot";
+import { getOverallAccuracy } from "@/lib/accuracy";
+import { ShieldCheck } from "lucide-react";
 
 function pickLabelFor(
   model: { winHome: number; draw: number; winAway: number },
@@ -28,7 +30,7 @@ export const dynamic = "force-dynamic";
 
 export default async function TodayPage() {
   const t = await getTranslations("home");
-  const [fixtures, news] = await Promise.all([
+  const [fixtures, news, overallAccuracy] = await Promise.all([
     prisma.fixture.findMany({
       where: { kickoff: { gte: new Date() }, prediction: { isNot: null } },
       include: { homeTeam: true, awayTeam: true, prediction: true },
@@ -36,6 +38,7 @@ export default async function TodayPage() {
       take: 20,
     }),
     getLatestSportsNews(),
+    getOverallAccuracy(),
   ]);
 
   const withModel = fixtures
@@ -83,6 +86,16 @@ export default async function TodayPage() {
           <p className="text-sm mt-4 text-muted max-w-md animate-fade-up" style={{ animationDelay: "120ms" }}>
             {t("subtitle")}
           </p>
+          {overallAccuracy.total >= 10 && (
+            <Link
+              href="/history"
+              className="inline-flex items-center gap-1.5 mt-4 text-[11px] font-bold text-lime hover:text-ink transition-colors animate-fade-up"
+              style={{ animationDelay: "160ms" }}
+            >
+              <ShieldCheck size={13} />
+              {t("trustBadge", { accuracy: overallAccuracy.accuracy, total: overallAccuracy.total })}
+            </Link>
+          )}
         </div>
       </div>
 
