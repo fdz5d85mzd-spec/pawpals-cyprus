@@ -119,7 +119,12 @@ export function currentSeasonYear(): number {
   return month >= 7 ? now.getUTCFullYear() : now.getUTCFullYear() - 1;
 }
 
-export async function getFixturesInWindow(hoursAhead = 24): Promise<AFFixture[]> {
+export interface FixturesWindowResult {
+  fixtures: AFFixture[];
+  leagueErrors: { league: string; error: string }[];
+}
+
+export async function getFixturesInWindow(hoursAhead = 24): Promise<FixturesWindowResult> {
   const now = new Date();
   const to = new Date(now.getTime() + hoursAhead * 3600 * 1000);
   // API-Football's /fixtures takes whole dates, not datetimes — fetch the
@@ -128,15 +133,26 @@ export async function getFixturesInWindow(hoursAhead = 24): Promise<AFFixture[]>
   const toDate = to.toISOString().slice(0, 10);
   const season = currentSeasonYear();
 
-  const perLeague = await throttledMap(TRACKED_LEAGUES, 800, (league) =>
-    afFetch<AFFixture[]>("/fixtures", { league: league.id, season, from: fromDate, to: toDate, timezone: "UTC" })
-  );
-  const fixtures = perLeague.flat();
-
-  return fixtures.filter((f) => {
+  // One league erroring (bad season guess, plan restriction, transient
+  // API hiccup) used to throw out of throttledMap and abort the whole
+  // batch, silently zeroing out every OTHER league that would have
+  // worked fine — that's how the site ended up with zero fixtures despite
+  // a full matchday elsewhere. Isolate each league's failure instead.
+  const leagueErrors: { league: string; error: string }[] = [];
+  const perLeague = await throttledMap(TRACKED_LEAGUES, 800, async (league) => {
+    try {
+      return await afFetch<AFFixture[]>("/fixtures", { league: league.id, season, from: fromDate, to: toDate, timezone: "UTC" });
+    } catch (err) {
+      leagueErrors.push({ league: league.name, error: err instanceof Error ? err.message : String(err) });
+      return [];
+    }
+  });
+  const fixtures = perLeague.flat().filter((f) => {
     const kickoff = new Date(f.fixture.date).getTime();
     return kickoff >= now.getTime() && kickoff <= to.getTime();
   });
+
+  return { fixtures, leagueErrors };
 }
 
 export interface AFTeamStatistics {
