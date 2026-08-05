@@ -1,5 +1,6 @@
 import { Star } from "lucide-react";
 import { getServerSession } from "next-auth";
+import { getTranslations } from "next-intl/server";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { Eyebrow } from "@/components/predictor/ui";
@@ -20,6 +21,7 @@ function Stars({ rating, size = 14 }: { rating: number; size?: number }) {
 
 export default async function ReviewsPage() {
   const session = await getServerSession(authOptions);
+  const t = await getTranslations("reviews");
 
   const [reviews, myReview] = await Promise.all([
     prisma.siteReview.findMany({ include: { user: true }, orderBy: { createdAt: "desc" }, take: 50 }),
@@ -32,21 +34,21 @@ export default async function ReviewsPage() {
     <div className="max-w-3xl mx-auto px-5 pt-8 pb-16">
       <div className="flex items-center gap-2 mb-2 animate-fade-up">
         <Star size={16} className="text-lime fill-lime" />
-        <span className="text-[10px] tracking-[0.2em] uppercase font-mono text-dim">Αξιολογήσεις</span>
+        <span className="text-[10px] tracking-[0.2em] uppercase font-mono text-dim">{t("kicker")}</span>
       </div>
       <h1 className="font-display text-4xl mb-6 font-extrabold text-ink tracking-tight animate-fade-up" style={{ animationDelay: "60ms" }}>
-        Τι λένε οι χρήστες
+        {t("title")}
       </h1>
 
       <div className="card p-6 mb-8 flex items-center gap-5 animate-fade-up" style={{ animationDelay: "120ms" }}>
         <div className="font-display text-5xl font-mono text-gradient">{avg.toFixed(1)}</div>
         <div>
           <Stars rating={Math.round(avg)} size={16} />
-          <div className="text-xs text-muted mt-1">{reviews.length} αξιολογήσεις</div>
+          <div className="text-xs text-muted mt-1">{t("count", { count: reviews.length })}</div>
         </div>
       </div>
 
-      <Eyebrow>{myReview ? "Ενημέρωσε την αξιολόγησή σου" : "Άφησε την αξιολόγησή σου"}</Eyebrow>
+      <Eyebrow>{myReview ? t("updateYours") : t("leaveYours")}</Eyebrow>
       {session ? (
         <div className="mb-8">
           <ReviewForm initialRating={myReview?.rating} initialBody={myReview?.body ?? undefined} />
@@ -54,18 +56,18 @@ export default async function ReviewsPage() {
       ) : (
         <div className="card p-4 mb-8 text-xs text-muted">
           <Link href="/login" className="text-lime font-bold">
-            Συνδέσου
+            {t("loginCta")}
           </Link>{" "}
-          για να αφήσεις αξιολόγηση.
+          {t("loginSuffix")}
         </div>
       )}
 
-      <Eyebrow>Όλες οι αξιολογήσεις</Eyebrow>
+      <Eyebrow>{t("allReviews")}</Eyebrow>
       <div className="grid sm:grid-cols-2 gap-2">
         {reviews.map((r) => (
           <div key={r.id} className="card p-4">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs font-bold text-ink">{r.user.username ?? r.user.name ?? "Χρήστης"}</span>
+              <span className="text-xs font-bold text-ink">{r.user.username ?? r.user.name ?? t("anonymousUser")}</span>
               <Stars rating={r.rating} />
             </div>
             {r.body && <p className="text-xs text-muted leading-relaxed">{r.body}</p>}

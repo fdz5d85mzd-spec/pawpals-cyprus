@@ -135,6 +135,83 @@
     "popupBody": "Become a partner for free and earn real cash on their payments — not just a discount.",
     "popupCta": "See the partner program"
   },
+  "standings": {
+    "kicker": "Leagues",
+    "title": "Standings",
+    "empty": "No standings available yet",
+    "emptySub": "The scheduler updates standings daily.",
+    "tableTitle": "League table",
+    "colTeam": "Team",
+    "colPlayed": "P",
+    "colWin": "W",
+    "colDraw": "D",
+    "colLose": "L",
+    "colGoals": "Goals",
+    "colPoints": "Pts"
+  },
+  "markets": {
+    "oneXTwo": "1X2",
+    "doubleChance": "Double Chance",
+    "asianHandicap": "Asian Handicap",
+    "htFt": "HT/FT",
+    "overUnder": "O/U 2.5",
+    "btts": "BTTS",
+    "correctScore": "Correct Score"
+  },
+  "history": {
+    "kicker": "Model transparency",
+    "title": "How accurate was it?",
+    "summary": "Successful predictions across {total} settled matches/markets ({correct}/{total}). Updates automatically as each match ends.",
+    "byMarket": "By market",
+    "recentTitle": "Latest predictions vs result",
+    "empty": "No finished matches with a frozen prediction yet.",
+    "rowDetail": "{market} · predicted: {predicted} ({pct}%) · actual: {actual}",
+    "hit": "✓ Hit",
+    "miss": "✕ Miss"
+  },
+  "reviews": {
+    "kicker": "Reviews",
+    "title": "What users are saying",
+    "count": "{count} reviews",
+    "updateYours": "Update your review",
+    "leaveYours": "Leave your review",
+    "loginCta": "Log in",
+    "loginSuffix": "to leave a review.",
+    "allReviews": "All reviews",
+    "anonymousUser": "User",
+    "placeholder": "Tell us what you think (optional)...",
+    "submit": "Submit review",
+    "updated": "Updated ✓"
+  },
+  "suggestions": {
+    "kicker": "Suggestions",
+    "title": "What would you like to see?",
+    "loginCta": "Log in",
+    "loginSuffix": "to send a suggestion.",
+    "allSuggestions": "All suggestions",
+    "empty": "No suggestions yet — write the first one!",
+    "anonymousUser": "User",
+    "placeholder": "What would you like to see on Skorama?",
+    "submit": "Send suggestion",
+    "error": "Something went wrong, try again.",
+    "statusOpen": "New",
+    "statusPlanned": "Planned",
+    "statusDone": "Done",
+    "statusDeclined": "Won't do"
+  },
+  "help": {
+    "kicker": "Support",
+    "title": "How can we help?",
+    "subtitle": "Send us your question and we'll reply to your email as soon as possible.",
+    "sent": "Message sent ✓",
+    "sentSub": "We'll get back to you soon.",
+    "namePlaceholder": "Name",
+    "emailPlaceholder": "Email",
+    "subjectPlaceholder": "Subject",
+    "bodyPlaceholder": "Your message...",
+    "submit": "Send",
+    "error": "Something went wrong, try again."
+  },
   "signupPopup": {
     "kicker": "Limited offer",
     "title": "20% off your first Pro subscription",
@@ -159,5 +236,22 @@
     "eyebrowDated": "On this day",
     "generalTitle": "Did you know...",
     "seeAll": "See all events →"
+  },
+  "terms": {
+    "kicker": "Legal",
+    "title": "Terms of Use",
+    "section1Title": "What Skorama is",
+    "section1Body": "Skorama is a <b>statistical analysis</b> tool for football matches, based on a mathematical model (Poisson with a Dixon-Coles adjustment). <b>It is not a betting service</b> and does not provide \"sure\" predictions or guaranteed profits. The probabilities shown are the result of statistical calculations on historical data and may not come true.",
+    "section2Title": "Account & Subscriptions",
+    "section2Body": "We offer a <b>Free</b> plan (limited access) and a <b>Pro</b> plan (full access, paid, via Stripe). The Pro subscription renews automatically on a monthly basis unless cancelled. You can cancel at any time from your account page — Pro access remains active until the end of the current billing period, with no partial refund for the remaining time.",
+    "section3Title": "User content",
+    "section3Body": "Comments on matches, reviews, and suggestions you post are your own responsibility. We reserve the right to remove content that is offensive, illegal, or off-topic.",
+    "section4Title": "Limitation of liability",
+    "section4Body": "Skorama is provided \"as is\". We are not responsible for decisions (financial or otherwise) you make based on the model's predictions. If you use this information in combination with betting, you do so entirely at your own risk and in accordance with the laws applicable in your country.",
+    "section5Title": "Governing law",
+    "section5Body": "These terms are governed by Greek law. The courts of Athens have jurisdiction.",
+    "section6Title": "Contact",
+    "section6Body": "For any question about these terms of use, contact us via the",
+    "supportLink": "Support"
   }
 }

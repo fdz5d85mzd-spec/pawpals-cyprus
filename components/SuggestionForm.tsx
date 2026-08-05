@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 export function SuggestionForm() {
+  const t = useTranslations("suggestions");
   const router = useRouter();
   const [body, setBody] = useState("");
   const [loading, setLoading] = useState(false);
@@ -21,7 +23,7 @@ export function SuggestionForm() {
     });
     setLoading(false);
     if (!res.ok) {
-      setError("Κάτι πήγε στραβά, δοκίμασε ξανά.");
+      setError(t("error"));
       return;
     }
     setBody("");
@@ -33,13 +35,13 @@ export function SuggestionForm() {
       <textarea
         value={body}
         onChange={(e) => setBody(e.target.value)}
-        placeholder="Τι θα ήθελες να δεις στο Skorama;"
+        placeholder={t("placeholder")}
         rows={3}
         className="input resize-none mb-3"
       />
       {error && <div className="text-xs text-rose mb-2">{error}</div>}
       <button type="submit" disabled={loading || body.trim().length < 3} className="btn-primary">
-        {loading ? "..." : "Αποστολή εισήγησης"}
+        {loading ? "..." : t("submit")}
       </button>
     </form>
   );
