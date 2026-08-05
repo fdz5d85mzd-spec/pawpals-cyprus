@@ -47,6 +47,7 @@ model User {
   rewardsEarned ReferralReward[] @relation("RewardsEarned")
   rewardCaused  ReferralReward?  @relation("RewardCaused")
   picks         UserPick[]
+  pushSubscriptions PushSubscription[]
 
   // Formal cash-commission partner program — separate from the
   // friend-discount Referral system above (that pays a discount on the
@@ -304,6 +305,19 @@ model UserPick {
   createdAt DateTime   @default(now())
 
   @@unique([userId, fixtureId])
+}
+
+// One row per browser/device the user enabled push notifications on
+// (they can have several). Sent the daily pick-of-day alongside the
+// existing email digest — see app/api/cron/send-daily-digest/route.ts.
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
 }
 
 // ---------------------------------------------------------------------------
