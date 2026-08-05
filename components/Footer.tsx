@@ -17,6 +17,7 @@ export function Footer() {
       links: [
         { href: "/", label: nav("today") },
         { href: "/history", label: t("accuracyHistory") },
+        { href: "/on-this-day", label: t("onThisDay") },
         { href: "/pricing", label: nav("pricing") },
       ],
     },

@@ -15,6 +15,7 @@
     "community": "Community",
     "legal": "Legal",
     "accuracyHistory": "History & Accuracy",
+    "onThisDay": "On This Day",
     "suggestions": "Suggestions",
     "support": "Support",
     "terms": "Terms of Use",
@@ -74,5 +75,14 @@
     },
     "annualSavings": "Save ~28% compared to monthly billing",
     "lifetimeNote": "One payment, access forever"
+  },
+  "onThisDay": {
+    "kicker": "History",
+    "title": "On this day in football",
+    "subtitle": "Verified events from football history, one for each day of the year.",
+    "todayBadge": "Today",
+    "eyebrowDated": "On this day",
+    "generalTitle": "Did you know...",
+    "seeAll": "See all events →"
   }
 }

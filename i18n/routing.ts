@@ -1,11 +1,10 @@
 import { defineRouting } from "next-intl/routing";
 
 // Greek stays unprefixed at "/" (matches every existing URL/bookmark/SEO
-// link so far) — English lives under "/en". More languages (Bulgarian,
-// Russian) get added to this list once EL/EN is verified solid, since each
-// one needs a full messages/<locale>.json translation pass.
+// link so far) — every other language lives under its own prefix
+// ("/en", "/bg", "/ru").
 export const routing = defineRouting({
-  locales: ["el", "en"],
+  locales: ["el", "en", "bg", "ru"],
   defaultLocale: "el",
   localePrefix: "as-needed",
   // Skorama is a Greek-market product first — "/" should always be Greek
