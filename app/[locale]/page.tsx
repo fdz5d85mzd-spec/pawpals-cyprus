@@ -14,6 +14,9 @@ import { getTodaysFootballHistory, getFallbackFootballFact } from "@/lib/footbal
 import { Mascot } from "@/components/predictor/Mascot";
 import { getOverallAccuracy } from "@/lib/accuracy";
 import { ShieldCheck } from "lucide-react";
+import { AdSlotBoxes } from "@/components/AdSlotBoxes";
+
+const AD_SLOT_KEY = "homepage-sidebar";
 
 function pickLabelFor(
   model: { winHome: number; draw: number; winAway: number },
@@ -30,7 +33,7 @@ export const dynamic = "force-dynamic";
 
 export default async function TodayPage() {
   const t = await getTranslations("home");
-  const [fixtures, news, overallAccuracy] = await Promise.all([
+  const [fixtures, news, overallAccuracy, adBanners] = await Promise.all([
     prisma.fixture.findMany({
       where: { kickoff: { gte: new Date() }, prediction: { isNot: null } },
       include: { homeTeam: true, awayTeam: true, prediction: true },
@@ -39,6 +42,7 @@ export default async function TodayPage() {
     }),
     getLatestSportsNews(),
     getOverallAccuracy(),
+    prisma.adBanner.findMany({ where: { slotKey: AD_SLOT_KEY } }),
   ]);
 
   const withModel = fixtures
@@ -208,6 +212,7 @@ export default async function TodayPage() {
               winAway={pickOfDay.model.winAway}
             />
           )}
+          <AdSlotBoxes slotKey={AD_SLOT_KEY} initialBanners={adBanners} />
         </div>
 
         {pickOfDay && (
@@ -221,6 +226,9 @@ export default async function TodayPage() {
             />
           </div>
         )}
+        <div className="mt-4 lg:hidden">
+          <AdSlotBoxes slotKey={AD_SLOT_KEY} initialBanners={adBanners} />
+        </div>
       </div>
     </div>
   );

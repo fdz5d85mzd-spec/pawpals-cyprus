@@ -374,6 +374,22 @@ model HelpdeskMessage {
   createdAt DateTime @default(now())
 }
 
+// Admin-managed sponsor/ad boxes for otherwise-empty layout space (e.g. the
+// homepage sidebar). `slotKey` identifies which spot on the site a banner
+// belongs to; `position` orders banners within that slot and doubles as a
+// stable "box #1/2/3" identity so the UI always renders a fixed number of
+// boxes (filled or empty) rather than a variable-length list.
+model AdBanner {
+  id        String   @id @default(cuid())
+  slotKey   String
+  position  Int
+  imageUrl  String
+  linkUrl   String
+  updatedAt DateTime @updatedAt
+
+  @@unique([slotKey, position])
+}
+
 // A prediction "frozen" ~24h before kickoff. Immutable once created — the
 // scheduler only ever inserts one snapshot per fixture (enforced by the
 // unique fixtureId).
