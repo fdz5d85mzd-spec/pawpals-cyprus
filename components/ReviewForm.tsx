@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Star } from "lucide-react";
 
 export function ReviewForm({ initialRating, initialBody }: { initialRating?: number; initialBody?: string }) {
+  const t = useTranslations("reviews");
   const router = useRouter();
   const [rating, setRating] = useState(initialRating ?? 0);
   const [hover, setHover] = useState(0);
@@ -50,12 +52,12 @@ export function ReviewForm({ initialRating, initialBody }: { initialRating?: num
       <textarea
         value={body}
         onChange={(e) => setBody(e.target.value)}
-        placeholder="Πες μας τη γνώμη σου (προαιρετικό)..."
+        placeholder={t("placeholder")}
         rows={2}
         className="input resize-none mb-3"
       />
       <button type="submit" disabled={loading || rating === 0} className="btn-primary">
-        {loading ? "..." : done ? "Ενημερώθηκε ✓" : "Υποβολή αξιολόγησης"}
+        {loading ? "..." : done ? t("updated") : t("submit")}
       </button>
     </form>
   );

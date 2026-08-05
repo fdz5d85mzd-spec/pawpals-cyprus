@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { useSession } from "next-auth/react";
+import { useTranslations } from "next-intl";
 import { LifeBuoy } from "lucide-react";
 
 export default function HelpPage() {
   const { data: session } = useSession();
+  const t = useTranslations("help");
   const [name, setName] = useState(session?.user?.name ?? "");
   const [email, setEmail] = useState(session?.user?.email ?? "");
   const [subject, setSubject] = useState("");
@@ -25,7 +27,7 @@ export default function HelpPage() {
     });
     setLoading(false);
     if (!res.ok) {
-      setError("Κάτι πήγε στραβά, δοκίμασε ξανά.");
+      setError(t("error"));
       return;
     }
     setDone(true);
@@ -37,26 +39,26 @@ export default function HelpPage() {
     <div className="max-w-2xl mx-auto px-5 pt-8 pb-16">
       <div className="flex items-center gap-2 mb-2 animate-fade-up">
         <LifeBuoy size={16} className="text-lime" />
-        <span className="text-[10px] tracking-[0.2em] uppercase font-mono text-dim">Υποστήριξη</span>
+        <span className="text-[10px] tracking-[0.2em] uppercase font-mono text-dim">{t("kicker")}</span>
       </div>
       <h1 className="font-display text-4xl mb-3 font-extrabold text-ink tracking-tight animate-fade-up" style={{ animationDelay: "60ms" }}>
-        Πώς μπορούμε να βοηθήσουμε;
+        {t("title")}
       </h1>
       <p className="text-sm text-muted mb-8 animate-fade-up" style={{ animationDelay: "120ms" }}>
-        Στείλε μας το ερώτημά σου και θα σου απαντήσουμε στο email σου το συντομότερο δυνατό.
+        {t("subtitle")}
       </p>
 
       {done ? (
         <div className="card p-6 text-center">
-          <div className="text-lime font-bold text-sm mb-1">Το μήνυμα στάλθηκε ✓</div>
-          <div className="text-xs text-dim">Θα επικοινωνήσουμε μαζί σου σύντομα.</div>
+          <div className="text-lime font-bold text-sm mb-1">{t("sent")}</div>
+          <div className="text-xs text-dim">{t("sentSub")}</div>
         </div>
       ) : (
         <form onSubmit={submit} className="card p-5 space-y-3">
           <input
             type="text"
             required
-            placeholder="Όνομα"
+            placeholder={t("namePlaceholder")}
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="input"
@@ -64,7 +66,7 @@ export default function HelpPage() {
           <input
             type="email"
             required
-            placeholder="Email"
+            placeholder={t("emailPlaceholder")}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="input"
@@ -72,7 +74,7 @@ export default function HelpPage() {
           <input
             type="text"
             required
-            placeholder="Θέμα"
+            placeholder={t("subjectPlaceholder")}
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             className="input"
@@ -80,7 +82,7 @@ export default function HelpPage() {
           <textarea
             required
             minLength={5}
-            placeholder="Το μήνυμά σου..."
+            placeholder={t("bodyPlaceholder")}
             rows={5}
             value={body}
             onChange={(e) => setBody(e.target.value)}
@@ -88,7 +90,7 @@ export default function HelpPage() {
           />
           {error && <div className="text-xs text-rose">{error}</div>}
           <button type="submit" disabled={loading} className="btn-primary w-full">
-            {loading ? "..." : "Αποστολή"}
+            {loading ? "..." : t("submit")}
           </button>
         </form>
       )}
