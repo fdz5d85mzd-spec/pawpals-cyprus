@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import type { AuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "@/lib/db";
+import { isAdminEmail } from "@/lib/admin";
 
 export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -51,6 +52,7 @@ export const authOptions: AuthOptions = {
         // Only surface the trial countdown while it's the reason for PRO
         // access — a real paying user doesn't need a "trial ending" clock.
         token.trialEndsAt = inTrial && !activePaid ? dbUser!.trialEndsAt!.toISOString() : null;
+        token.isAdmin = isAdminEmail(dbUser?.email);
       }
       return token;
     },
@@ -59,6 +61,7 @@ export const authOptions: AuthOptions = {
         (session.user as { id?: string }).id = token.userId as string;
         (session.user as { plan?: string }).plan = (token.plan as string) ?? "FREE";
         (session.user as { trialEndsAt?: string | null }).trialEndsAt = (token.trialEndsAt as string | null) ?? null;
+        (session.user as { isAdmin?: boolean }).isAdmin = !!token.isAdmin;
       }
       return session;
     },
