@@ -16,6 +16,7 @@
     "legal": "Legal",
     "accuracyHistory": "History & Accuracy",
     "onThisDay": "On This Day",
+    "weeklyPicks": "Matches of the Week",
     "leaderboard": "Leaderboard",
     "affiliate": "Partners",
     "suggestions": "Suggestions",
@@ -140,6 +141,14 @@
     "cta": "Sign up free",
     "dismiss": "Not now",
     "close": "Close"
+  },
+  "weeklyPicks": {
+    "kicker": "Weekly picks",
+    "title": "Matches of the week",
+    "subtitle": "The highest-confidence matches from the model over the next 7 days — each analyzed on its own, never combined into one bet.",
+    "kickoffLabel": "Kickoff",
+    "seeMatch": "See full analysis →",
+    "empty": "No frozen predictions for the next 7 days yet."
   },
   "onThisDay": {
     "kicker": "History",
