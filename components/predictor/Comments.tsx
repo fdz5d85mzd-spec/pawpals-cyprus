@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useSession } from "next-auth/react";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, Flame } from "lucide-react";
 import { Eyebrow } from "./ui";
 import { Link, useRouter } from "@/i18n/navigation";
 
@@ -11,6 +11,7 @@ export interface CommentItem {
   body: string;
   createdAt: string;
   userName: string;
+  streak?: number;
 }
 
 function timeAgo(iso: string) {
@@ -84,7 +85,15 @@ export function Comments({ fixtureId, initialComments }: { fixtureId: number; in
         {comments.map((c) => (
           <div key={c.id} className="card p-3.5">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-bold text-ink">{c.userName}</span>
+              <span className="flex items-center gap-1.5">
+                <span className="text-xs font-bold text-ink">{c.userName}</span>
+                {(c.streak ?? 0) >= 3 && (
+                  <span className="flex items-center gap-0.5 text-[10px] font-mono font-bold text-amber">
+                    <Flame size={11} className="fill-amber" />
+                    {c.streak}
+                  </span>
+                )}
+              </span>
               <span className="text-[10px] text-dim font-mono">{timeAgo(c.createdAt)}</span>
             </div>
             <p className="text-xs text-muted leading-relaxed">{c.body}</p>

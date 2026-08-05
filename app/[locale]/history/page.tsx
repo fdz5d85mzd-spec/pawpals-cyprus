@@ -1,5 +1,6 @@
 import { Gauge } from "lucide-react";
 import { prisma } from "@/lib/db";
+import { getOverallAccuracy } from "@/lib/accuracy";
 import { Eyebrow } from "@/components/predictor/ui";
 
 export const dynamic = "force-dynamic";
@@ -15,15 +16,14 @@ const MARKET_LABELS: Record<string, string> = {
 };
 
 export default async function HistoryPage() {
-  const results = await prisma.predictionResult.findMany({
-    include: { prediction: { include: { fixture: { include: { homeTeam: true, awayTeam: true } } } } },
-    orderBy: { settledAt: "desc" },
-    take: 100,
-  });
-
-  const total = results.length;
-  const correct = results.filter((r) => r.hit).length;
-  const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
+  const [results, { total, correct, accuracy }] = await Promise.all([
+    prisma.predictionResult.findMany({
+      include: { prediction: { include: { fixture: { include: { homeTeam: true, awayTeam: true } } } } },
+      orderBy: { settledAt: "desc" },
+      take: 100,
+    }),
+    getOverallAccuracy(),
+  ]);
 
   const byMarket = new Map<string, { total: number; hits: number }>();
   for (const r of results) {

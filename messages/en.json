@@ -35,7 +35,8 @@
     "draw": "Draw",
     "score": "Score",
     "engineTitle": "Engine.",
-    "engineBody": "A single Poisson probability matrix feeds every market — 1X2, Double Chance, Asian Handicap, HT/FT, Over/Under, BTTS, Correct Score, Scorer. Corners/Cards use a separate model (they don't come from goals)."
+    "engineBody": "A single Poisson probability matrix feeds every market — 1X2, Double Chance, Asian Handicap, HT/FT, Over/Under, BTTS, Correct Score, Scorer. Corners/Cards use a separate model (they don't come from goals).",
+    "trustBadge": "{accuracy}% accuracy over {total}+ settled markets — see the history"
   },
   "pricing": {
     "kicker": "Pricing",

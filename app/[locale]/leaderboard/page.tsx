@@ -1,8 +1,9 @@
 import { getTranslations } from "next-intl/server";
 import { getServerSession } from "next-auth";
-import { Trophy } from "lucide-react";
+import { Trophy, Flame } from "lucide-react";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { getStreaks } from "@/lib/streak";
 
 const MIN_PICKS = 5;
 
@@ -32,6 +33,7 @@ export default async function LeaderboardPage() {
     .slice(0, 50);
 
   const mine = session?.user?.id ? byUser.get(session.user.id) : undefined;
+  const streaks = await getStreaks(rows.map((r) => r.userId));
 
   return (
     <div className="max-w-3xl mx-auto px-5 pt-8 pb-16">
@@ -81,7 +83,17 @@ export default async function LeaderboardPage() {
                   }`}
                 >
                   <td className="py-2.5 px-3 font-mono text-dim">{i + 1}</td>
-                  <td className="py-2.5 px-3 text-ink font-medium">{r.name}</td>
+                  <td className="py-2.5 px-3 text-ink font-medium">
+                    <span className="flex items-center gap-1.5">
+                      {r.name}
+                      {(streaks.get(r.userId) ?? 0) >= 3 && (
+                        <span className="flex items-center gap-0.5 text-[10px] font-mono font-bold text-amber">
+                          <Flame size={11} className="fill-amber" />
+                          {streaks.get(r.userId)}
+                        </span>
+                      )}
+                    </span>
+                  </td>
                   <td className="py-2.5 px-3 text-center font-mono text-muted">
                     {r.hits}/{r.total}
                   </td>
