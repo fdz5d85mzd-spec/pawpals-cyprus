@@ -11,6 +11,7 @@ export function Nav() {
   const { data: session } = useSession();
   const pathname = usePathname();
   const t = useTranslations("nav");
+  const tFooter = useTranslations("footer");
   const locale = useLocale();
   const [open, setOpen] = useState(false);
 
@@ -21,7 +22,10 @@ export function Nav() {
     { href: "/", label: t("today") },
     { href: "/standings", label: t("standings") },
     { href: "/history", label: t("history") },
+    { href: "/on-this-day", label: tFooter("onThisDay") },
     { href: "/reviews", label: t("reviews") },
+    { href: "/leaderboard", label: tFooter("leaderboard") },
+    { href: "/affiliate", label: tFooter("affiliate") },
     { href: "/pricing", label: t("pricing") },
   ] as const;
 

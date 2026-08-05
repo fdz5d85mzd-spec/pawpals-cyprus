@@ -25,7 +25,7 @@ export function Ticker({ items }: { items: TickerItem[] }) {
             href={`/match/${it.fixtureId}`}
             className="flex items-center gap-2 text-[11px] font-mono px-6 border-r border-border/50 shrink-0 hover:text-lime transition-colors"
           >
-            <span className="text-dim">
+            <span className="text-muted">
               {it.homeName} – {it.awayName}
             </span>
             <span className="text-lime font-bold">

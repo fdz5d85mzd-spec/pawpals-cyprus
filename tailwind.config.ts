@@ -79,8 +79,10 @@ const config: Config = {
         marquee: "marquee 25s linear infinite",
         "mascot-bob": "mascot-bob 3.2s ease-in-out infinite",
         "hair-sway": "hair-sway 2.4s ease-in-out infinite",
-        "ball-bounce": "ball-bounce 1.6s cubic-bezier(0.5,0,1,0.5) infinite",
-        "ball-shadow": "ball-shadow 1.6s cubic-bezier(0.5,0,1,0.5) infinite",
+        // 6 bounces then rest — an endless loop read as broken/distracting
+        // rather than a nice idle touch.
+        "ball-bounce": "ball-bounce 1.6s cubic-bezier(0.5,0,1,0.5) 6 forwards",
+        "ball-shadow": "ball-shadow 1.6s cubic-bezier(0.5,0,1,0.5) 6 forwards",
       },
     },
   },
