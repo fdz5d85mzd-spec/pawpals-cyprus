@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { presentPrediction } from "@/lib/present";
 import { getResendClient, DIGEST_FROM } from "@/lib/resend";
 import { buildDigestEmail, type DigestPick } from "@/lib/digest-email";
+import { getWebPushClient } from "@/lib/push";
 
 export const dynamic = "force-dynamic";
 
@@ -64,5 +65,35 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ ok: true, sent, recipients: recipients.length, errors });
+  // Push is best-effort and independent of email — missing VAPID keys or a
+  // dead subscription should never affect the email send above.
+  let pushSent = 0;
+  if (process.env.VAPID_PRIVATE_KEY) {
+    const top = picks[0];
+    const subs = await prisma.pushSubscription.findMany();
+    const webpush = getWebPushClient();
+    const payload = JSON.stringify({
+      title: "Πρόγνωση της ημέρας",
+      body: `${top.homeName} – ${top.awayName}: ${top.pickLabel} (${top.pct}%)`,
+      url: `/match/${top.fixtureId}`,
+    });
+
+    for (const sub of subs) {
+      try {
+        await webpush.sendNotification(
+          { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+          payload
+        );
+        pushSent++;
+      } catch (err) {
+        const statusCode = (err as { statusCode?: number }).statusCode;
+        if (statusCode === 404 || statusCode === 410) {
+          // Subscription expired or the user uninstalled/blocked us — clean it up.
+          await prisma.pushSubscription.delete({ where: { id: sub.id } }).catch(() => {});
+        }
+      }
+    }
+  }
+
+  return NextResponse.json({ ok: true, sent, recipients: recipients.length, pushSent, errors });
 }

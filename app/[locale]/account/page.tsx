@@ -7,6 +7,7 @@ import { Link } from "@/i18n/navigation";
 import { ManageBillingButton } from "@/components/ManageBillingButton";
 import { PromoRedeemForm } from "@/components/PromoRedeemForm";
 import { ReferralCard } from "@/components/ReferralCard";
+import { PushNotificationToggle } from "@/components/PushNotificationToggle";
 import { generateReferralCode } from "@/lib/referral";
 
 export const dynamic = "force-dynamic";
@@ -55,6 +56,9 @@ export default async function AccountPage() {
           <ManageBillingButton />
         </div>
       )}
+      <div className="mb-4">
+        <PushNotificationToggle />
+      </div>
       {!isPro && (
         <div className="card p-5 mb-4">
           <div className="text-xs text-muted mb-2">Έχεις promo code;</div>
