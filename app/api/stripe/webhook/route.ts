@@ -1,11 +1,55 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
+import { Prisma } from "@prisma/client";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/db";
 import { REFERRAL_DISCOUNT_PERCENT } from "@/lib/referral";
 import { getReferralCouponId } from "@/lib/referral-coupon";
+import { commissionCents } from "@/lib/affiliate";
 
 export const dynamic = "force-dynamic";
+
+// Real cash commission for the affiliate/partner program (separate from the
+// referral discount above). Deliberately fed ONLY from invoice.paid for
+// subscription plans — Stripe raises an invoice.paid for a brand-new
+// subscription's first payment too, so also granting from
+// checkout.session.completed would double-credit it. Lifetime is the one
+// exception: it's a plain one-time Checkout payment with no Invoice object
+// at all, so that case grants directly from checkout.session.completed.
+async function grantAffiliateCommission({
+  userId,
+  amountCents,
+  plan,
+  stripeEventId,
+}: {
+  userId: string;
+  amountCents: number;
+  plan: string;
+  stripeEventId: string;
+}) {
+  if (amountCents <= 0) return;
+  const referredUser = await prisma.user.findUnique({ where: { id: userId } });
+  if (!referredUser?.referredByAffiliateId) return;
+
+  const affiliate = await prisma.affiliate.findUnique({ where: { id: referredUser.referredByAffiliateId } });
+  if (!affiliate) return;
+
+  try {
+    await prisma.affiliateCommission.create({
+      data: {
+        affiliateId: affiliate.id,
+        referredUserId: userId,
+        amountCents: commissionCents(amountCents, affiliate.commissionPercent),
+        plan,
+        stripeEventId,
+      },
+    });
+  } catch (err) {
+    // Unique constraint on stripeEventId — Stripe's at-least-once delivery
+    // means we'll see the same event again; that's expected, not an error.
+    if (!(err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002")) throw err;
+  }
+}
 
 // Fires once, the first time a referred user completes ANY successful
 // checkout (subscription or lifetime). Creates the reward row exactly once
@@ -113,6 +157,12 @@ export async function POST(req: NextRequest) {
             create: { userId, plan: "PRO", status: "active", stripeCustomerId: customerId },
             update: { plan: "PRO", status: "active" },
           });
+          await grantAffiliateCommission({
+            userId,
+            amountCents: checkoutSession.amount_total ?? 0,
+            plan: "lifetime",
+            stripeEventId: event.id,
+          });
         }
       }
 
@@ -132,6 +182,25 @@ export async function POST(req: NextRequest) {
     case "customer.subscription.updated":
     case "customer.subscription.deleted": {
       await upsertFromSubscription(event.data.object as Stripe.Subscription);
+      break;
+    }
+    case "invoice.paid": {
+      // Covers both the first payment of a new monthly/annual subscription
+      // and every renewal after it — see grantAffiliateCommission's comment
+      // for why lifetime is handled separately above instead of here.
+      const invoice = event.data.object as Stripe.Invoice;
+      const customerId = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
+      if (customerId && invoice.amount_paid > 0) {
+        const sub = await prisma.subscription.findUnique({ where: { stripeCustomerId: customerId } });
+        if (sub) {
+          await grantAffiliateCommission({
+            userId: sub.userId,
+            amountCents: invoice.amount_paid,
+            plan: "subscription",
+            stripeEventId: event.id,
+          });
+        }
+      }
       break;
     }
     default:

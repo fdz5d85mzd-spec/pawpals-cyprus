@@ -8,7 +8,9 @@ import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { TrialBanner } from "@/components/TrialBanner";
 import { SignupPopup } from "@/components/SignupPopup";
+import { AffiliatePopup } from "@/components/AffiliatePopup";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
+import { AffiliateTracker } from "@/components/AffiliateTracker";
 import "../globals.css";
 
 export const metadata: Metadata = {
@@ -40,9 +42,11 @@ export default async function RootLayout({
             <div className="flex-1">{children}</div>
             <Footer />
             <SignupPopup />
+            <AffiliatePopup />
           </Providers>
         </NextIntlClientProvider>
         <ServiceWorkerRegister />
+        <AffiliateTracker />
         <Analytics />
       </body>
     </html>

@@ -48,6 +48,15 @@ model User {
   rewardCaused  ReferralReward?  @relation("RewardCaused")
   picks         UserPick[]
 
+  // Formal cash-commission partner program — separate from the
+  // friend-discount Referral system above (that pays a discount on the
+  // referrer's OWN bill; this pays real money to a partner for signups
+  // they bring in). `affiliate` is only set once a user opts in.
+  affiliate             Affiliate?
+  referredByAffiliateId String?
+  referredByAffiliate   Affiliate?            @relation("AffiliateSignups", fields: [referredByAffiliateId], references: [id])
+  commissionsGenerated  AffiliateCommission[] @relation("CommissionsFromUser")
+
   createdAt DateTime @default(now())
 }
 
@@ -64,6 +73,58 @@ model ReferralReward {
   stripeCouponId String?
   appliedAt      DateTime?
   createdAt      DateTime  @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Affiliate / partner program — real cash commissions, tracked in cents.
+// ---------------------------------------------------------------------------
+
+model Affiliate {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code              String   @unique
+  commissionPercent Int      @default(20)
+  createdAt         DateTime @default(now())
+
+  referredSignups User[]                @relation("AffiliateSignups")
+  clicks          AffiliateClick[]
+  commissions     AffiliateCommission[]
+}
+
+model AffiliateClick {
+  id          String    @id @default(cuid())
+  affiliateId String
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+
+  @@index([affiliateId])
+}
+
+enum CommissionStatus {
+  PENDING
+  PAID
+}
+
+// One row per commissionable payment — the affiliate's first referred
+// checkout AND every recurring renewal after it, not just a one-time
+// signup bonus (that's what makes "creating members" actually pay off
+// over time). Amount stored in cents to avoid float rounding. stripeEventId
+// dedupes against Stripe's at-least-once webhook delivery. Actual payout
+// (bank transfer / PayPal) happens outside this system for now — `status`
+// just records whether a commission has been settled yet.
+model AffiliateCommission {
+  id             String           @id @default(cuid())
+  affiliateId    String
+  affiliate      Affiliate        @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  referredUserId String
+  referredUser   User             @relation("CommissionsFromUser", fields: [referredUserId], references: [id], onDelete: Cascade)
+  amountCents    Int
+  currency       String           @default("eur")
+  plan           String
+  stripeEventId  String           @unique
+  status         CommissionStatus @default(PENDING)
+  createdAt      DateTime         @default(now())
 }
 
 model Account {

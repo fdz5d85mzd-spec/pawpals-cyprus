@@ -26,6 +26,7 @@ export function Footer() {
       links: [
         { href: "/reviews", label: nav("reviews") },
         { href: "/leaderboard", label: t("leaderboard") },
+        { href: "/affiliate", label: t("affiliate") },
         { href: "/suggestions", label: t("suggestions") },
         { href: "/help", label: t("support") },
       ],

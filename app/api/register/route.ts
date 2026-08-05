@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { generateReferralCode } from "@/lib/referral";
+import { AFFILIATE_COOKIE } from "@/lib/affiliate";
 
 const TRIAL_HOURS = 24;
 
@@ -39,6 +40,12 @@ export async function POST(req: NextRequest) {
 
   const referrer = ref ? await prisma.user.findUnique({ where: { referralCode: ref } }) : null;
 
+  // Affiliate attribution rides in on a cookie (set by AffiliateTracker when
+  // the visitor first landed with ?aff=CODE) rather than a form field, so it
+  // survives them browsing around before actually signing up.
+  const affCode = req.cookies.get(AFFILIATE_COOKIE)?.value;
+  const affiliate = affCode ? await prisma.affiliate.findUnique({ where: { code: affCode } }) : null;
+
   const passwordHash = await bcrypt.hash(password, 12);
 
   // Retry on the (astronomically unlikely) referralCode collision rather
@@ -58,6 +65,7 @@ export async function POST(req: NextRequest) {
           trialEndsAt: new Date(Date.now() + TRIAL_HOURS * 60 * 60 * 1000),
           referralCode: generateReferralCode(),
           referredById: referrer?.id,
+          referredByAffiliateId: affiliate?.id,
           subscription: { create: { plan: "FREE", status: "inactive" } },
         },
       });
