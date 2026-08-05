@@ -16,6 +16,7 @@
     "legal": "Legal",
     "accuracyHistory": "History & Accuracy",
     "onThisDay": "On This Day",
+    "leaderboard": "Leaderboard",
     "suggestions": "Suggestions",
     "support": "Support",
     "terms": "Terms of Use",
@@ -75,6 +76,32 @@
     },
     "annualSavings": "Save ~28% compared to monthly billing",
     "lifetimeNote": "One payment, access forever"
+  },
+  "picks": {
+    "title": "Your prediction",
+    "prompt": "Who wins?",
+    "loginPrompt": "Log in to make your prediction",
+    "yourPick": "Your pick: {pick}",
+    "change": "Change it",
+    "hit": "Nailed it! 🎯",
+    "miss": "Missed this one",
+    "pending": "You'll find out once the match ends",
+    "missedPick": "You didn't get a pick in for this one",
+    "error": "Something went wrong, try again."
+  },
+  "leaderboard": {
+    "kicker": "Leaderboard",
+    "title": "Who reads football best",
+    "subtitle": "Users ranked by their own prediction accuracy (minimum {min} predictions).",
+    "rank": "#",
+    "user": "User",
+    "accuracy": "Accuracy",
+    "picks": "Picks",
+    "empty": "Not enough prediction history yet.",
+    "myStats": "Your predictions",
+    "myAccuracy": "{hits}/{total} correct ({pct}%)",
+    "noPicksYet": "You haven't made a prediction yet — try one on a match!",
+    "viewAll": "See the full leaderboard →"
   },
   "signupPopup": {
     "kicker": "Limited offer",

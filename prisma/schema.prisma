@@ -46,6 +46,7 @@ model User {
   redeemedCodes PromoCode[]
   rewardsEarned ReferralReward[] @relation("RewardsEarned")
   rewardCaused  ReferralReward?  @relation("RewardCaused")
+  picks         UserPick[]
 
   createdAt DateTime @default(now())
 }
@@ -215,8 +216,33 @@ model Fixture {
 
   prediction PredictionSnapshot?
   comments   MatchComment[]
+  userPicks  UserPick[]
 
   @@index([kickoff])
+}
+
+enum PickChoice {
+  HOME
+  DRAW
+  AWAY
+}
+
+// A logged-in user's own 1X2 guess on a fixture, made before kickoff —
+// the persisted, cross-match version of the homepage's stateless
+// InstinctQuiz. `hit` stays null until settle-results grades the real
+// result; that's what powers both the personal accuracy tracker on
+// /account and the /leaderboard ranking.
+model UserPick {
+  id        String     @id @default(cuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fixtureId Int
+  fixture   Fixture    @relation(fields: [fixtureId], references: [id])
+  pick      PickChoice
+  hit       Boolean?
+  createdAt DateTime   @default(now())
+
+  @@unique([userId, fixtureId])
 }
 
 // ---------------------------------------------------------------------------

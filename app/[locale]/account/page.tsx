@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
+import { getTranslations } from "next-intl/server";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { Link } from "@/i18n/navigation";
 import { ManageBillingButton } from "@/components/ManageBillingButton";
 import { PromoRedeemForm } from "@/components/PromoRedeemForm";
 import { ReferralCard } from "@/components/ReferralCard";
@@ -12,10 +14,13 @@ export const dynamic = "force-dynamic";
 export default async function AccountPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) redirect("/login");
+  const t = await getTranslations("leaderboard");
 
-  const [subscription, user] = await Promise.all([
+  const [subscription, user, totalPicks, hitPicks] = await Promise.all([
     prisma.subscription.findUnique({ where: { userId: session.user.id } }),
     prisma.user.findUnique({ where: { id: session.user.id }, include: { rewardsEarned: true } }),
+    prisma.userPick.count({ where: { userId: session.user.id, hit: { not: null } } }),
+    prisma.userPick.count({ where: { userId: session.user.id, hit: true } }),
   ]);
   const isPro = subscription?.plan === "PRO" && subscription.status === "active";
   const isTrialing = !!session.user.trialEndsAt;
@@ -59,6 +64,19 @@ export default async function AccountPage() {
       {referralCode && (
         <ReferralCard referralCode={referralCode} appliedRewards={appliedRewards} pendingRewards={pendingRewards} />
       )}
+      <div className="card p-5 mt-4">
+        <div className="text-xs text-muted mb-2">{t("myStats")}</div>
+        {totalPicks > 0 ? (
+          <div className="text-sm text-lime font-bold mb-2">
+            {t("myAccuracy", { hits: hitPicks, total: totalPicks, pct: Math.round((hitPicks / totalPicks) * 100) })}
+          </div>
+        ) : (
+          <div className="text-xs text-dim mb-2">{t("noPicksYet")}</div>
+        )}
+        <Link href="/leaderboard" className="text-[11px] text-lime font-bold">
+          {t("viewAll")}
+        </Link>
+      </div>
       </div>
     </div>
   );

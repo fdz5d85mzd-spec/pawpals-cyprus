@@ -67,6 +67,15 @@ export async function GET(req: NextRequest) {
         skipDuplicates: true,
       });
 
+      // Grade every user's own 1X2 guess against the real result — powers
+      // the personal accuracy tracker on /account and /leaderboard.
+      const actualPick = af.goals.home > af.goals.away ? "HOME" : af.goals.home < af.goals.away ? "AWAY" : "DRAW";
+      await prisma.userPick.updateMany({ where: { fixtureId: fixture.id, pick: actualPick }, data: { hit: true } });
+      await prisma.userPick.updateMany({
+        where: { fixtureId: fixture.id, pick: { not: actualPick } },
+        data: { hit: false },
+      });
+
       settled++;
     } catch (err) {
       errors.push({ fixtureId: fixture.id, error: err instanceof Error ? err.message : String(err) });
