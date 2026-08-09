@@ -16,6 +16,7 @@ export function Footer() {
       title: t("product"),
       links: [
         { href: "/", label: nav("today") },
+        { href: "/guide", label: "Οδηγίες Χρήσης" },
         { href: "/history", label: t("accuracyHistory") },
         { href: "/on-this-day", label: t("onThisDay") },
         { href: "/weekly-picks", label: t("weeklyPicks") },
