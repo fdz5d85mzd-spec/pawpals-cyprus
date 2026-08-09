@@ -58,6 +58,10 @@ model User {
   referredByAffiliate   Affiliate?            @relation("AffiliateSignups", fields: [referredByAffiliateId], references: [id])
   commissionsGenerated  AffiliateCommission[] @relation("CommissionsFromUser")
 
+  // Self-serve paid ad slots (see AdSubmission below) — any signed-in user
+  // can rent an empty ad box, not just admins.
+  adSubmissions AdSubmission[]
+
   createdAt DateTime @default(now())
 }
 
@@ -387,7 +391,53 @@ model AdBanner {
   linkUrl   String
   updatedAt DateTime @updatedAt
 
+  // Set only when this banner came from an approved self-serve AdSubmission
+  // (null for banners the admin pasted in directly) — lets the Stripe
+  // webhook safely pull a banner down on cancellation without ever
+  // clobbering something the admin manually placed in the same slot.
+  sourceSubmissionId String?       @unique
+  sourceSubmission   AdSubmission? @relation(fields: [sourceSubmissionId], references: [id], onDelete: SetNull)
+
   @@unique([slotKey, position])
+}
+
+enum AdSubmissionStatus {
+  AWAITING_PAYMENT
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  CANCELED
+}
+
+// A user-submitted, self-serve paid ad request for one of the AdBanner grid
+// positions. Payment happens up front (Stripe subscription, see
+// lib/ad-slot-price.ts) — only once that succeeds does it move to
+// PENDING_APPROVAL for an admin to review before it actually goes live as
+// an AdBanner. Cancelling/expiring the Stripe subscription (see the
+// webhook) takes the live banner back down automatically.
+model AdSubmission {
+  id               String             @id @default(cuid())
+  slotKey          String
+  position         Int
+  advertiserUserId String
+  advertiser       User               @relation(fields: [advertiserUserId], references: [id], onDelete: Cascade)
+  imageUrl         String
+  linkUrl          String
+  autoRenew        Boolean            @default(true)
+  status           AdSubmissionStatus @default(AWAITING_PAYMENT)
+  rejectionReason  String?
+
+  stripeCustomerId     String?
+  stripeSubscriptionId String? @unique
+  currentPeriodEnd     DateTime?
+
+  banner AdBanner?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slotKey, position])
+  @@index([status])
 }
 
 // A prediction "frozen" ~24h before kickoff. Immutable once created — the

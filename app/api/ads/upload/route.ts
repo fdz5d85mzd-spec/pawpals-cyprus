@@ -1,25 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { isAdminEmail } from "@/lib/admin";
 import { uploadAdMedia, AdUploadError } from "@/lib/ad-upload";
 
 export const dynamic = "force-dynamic";
 
-// Admin-only upload for ad-box media (image or short video) — stored on
-// Vercel Blob so admins aren't limited to pasting an already-hosted URL.
-// Requires a Blob store connected to the project (Vercel → Storage →
-// Create Database → Blob), which auto-injects BLOB_READ_WRITE_TOKEN.
+// Self-serve upload for advertisers submitting their own ad creative —
+// any signed-in user, not just admins (see /api/admin/upload for that).
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  if (!isAdminEmail(session?.user?.email)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session?.user?.id) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
 
   const form = await req.formData();
   const file = form.get("file");
   if (!(file instanceof File)) return NextResponse.json({ error: "No file" }, { status: 400 });
 
   try {
-    return NextResponse.json(await uploadAdMedia(file, "ad-banners"));
+    return NextResponse.json(await uploadAdMedia(file, "ad-submissions"));
   } catch (err) {
     const status = err instanceof AdUploadError ? err.status : 500;
     return NextResponse.json({ error: err instanceof Error ? err.message : "Upload failed" }, { status });
