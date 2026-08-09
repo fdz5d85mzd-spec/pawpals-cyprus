@@ -43,7 +43,7 @@ export default async function TodayPage({ params }: { params: Promise<{ locale: 
   const [fixtures, news, overallAccuracy, adBanners] = await Promise.all([
     prisma.fixture.findMany({
       where: { kickoff: { gte: new Date() }, prediction: { isNot: null } },
-      include: { homeTeam: true, awayTeam: true, prediction: true },
+      include: { homeTeam: true, awayTeam: true, league: true, prediction: true },
       orderBy: { kickoff: "asc" },
       take: 20,
     }),
@@ -128,6 +128,10 @@ export default async function TodayPage({ params }: { params: Promise<{ locale: 
                   fixtureId={pickOfDay.fixture.id}
                   homeName={pickOfDay.fixture.homeTeam.name}
                   awayName={pickOfDay.fixture.awayTeam.name}
+                  homeLogoUrl={pickOfDay.fixture.homeTeam.logoUrl}
+                  awayLogoUrl={pickOfDay.fixture.awayTeam.logoUrl}
+                  leagueName={pickOfDay.fixture.league.name}
+                  kickoff={pickOfDay.fixture.kickoff}
                   model={pickOfDay.model}
                 />
                 <TopPicks items={topPicks} />
@@ -157,16 +161,29 @@ export default async function TodayPage({ params }: { params: Promise<{ locale: 
                     </div>
                     <ArrowRight size={14} className="text-dim group-hover:text-lime group-hover:translate-x-0.5 transition-all" />
                   </div>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex-1 text-center">
-                      <div className="font-display text-lg text-ink">{f.homeTeam.name}</div>
+                  <div className="text-[9px] uppercase tracking-wide font-mono text-dim mb-3 text-center">{f.league.name}</div>
+                  <div className="flex items-center justify-between mb-4 gap-2">
+                    <div className="flex-1 flex flex-col items-center gap-1.5 text-center min-w-0">
+                      {f.homeTeam.logoUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={f.homeTeam.logoUrl} alt="" className="w-9 h-9 object-contain" />
+                      ) : (
+                        <div className="w-9 h-9 rounded-full bg-surface3 border border-border" />
+                      )}
+                      <div className="font-display text-base text-ink truncate w-full">{f.homeTeam.name}</div>
                       {f.homeTeam.leaguePos && <div className="text-[10px] font-mono text-dim">#{f.homeTeam.leaguePos}</div>}
                     </div>
                     <div className="font-display text-[10px] font-extrabold px-2.5 py-1 bg-surface3 text-lime border border-lime/40 shrink-0">
                       VS
                     </div>
-                    <div className="flex-1 text-center">
-                      <div className="font-display text-lg text-ink">{f.awayTeam.name}</div>
+                    <div className="flex-1 flex flex-col items-center gap-1.5 text-center min-w-0">
+                      {f.awayTeam.logoUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={f.awayTeam.logoUrl} alt="" className="w-9 h-9 object-contain" />
+                      ) : (
+                        <div className="w-9 h-9 rounded-full bg-surface3 border border-border" />
+                      )}
+                      <div className="font-display text-base text-ink truncate w-full">{f.awayTeam.name}</div>
                       {f.awayTeam.leaguePos && <div className="text-[10px] font-mono text-dim">#{f.awayTeam.leaguePos}</div>}
                     </div>
                   </div>
