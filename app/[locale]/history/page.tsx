@@ -1,12 +1,17 @@
 import { Gauge } from "lucide-react";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { prisma } from "@/lib/db";
 import { getOverallAccuracy } from "@/lib/accuracy";
 import { Eyebrow } from "@/components/predictor/ui";
 
-export const dynamic = "force-dynamic";
+// Public, non-personalized — updates via settle-results (every 2h), so a
+// short revalidate window is imperceptibly stale but avoids a full
+// server round-trip on every navigation.
+export const revalidate = 60;
 
-export default async function HistoryPage() {
+export default async function HistoryPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations("history");
   const tMarkets = await getTranslations("markets");
   const MARKET_LABELS: Record<string, string> = {

@@ -5,7 +5,9 @@ import { prisma } from "@/lib/db";
 import { Eyebrow, Stat, FormPill } from "@/components/predictor/ui";
 import type { FormResult } from "@/lib/model";
 
-export const dynamic = "force-dynamic";
+// Public, non-personalized team stats — only change via the daily sync
+// crons, so a short revalidate avoids a full DB round-trip on every visit.
+export const revalidate = 60;
 
 export default async function TeamPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

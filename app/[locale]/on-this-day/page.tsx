@@ -1,12 +1,16 @@
 import { CalendarDays } from "lucide-react";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Eyebrow } from "@/components/predictor/ui";
 import { GENERAL_FACTS, getAllFootballHistorySorted, getTodaysFootballHistory } from "@/lib/football-history";
 
-export const dynamic = "force-dynamic";
+// Fully static content keyed off today's date (no DB) — only changes once
+// a day at midnight, so an hourly revalidate is more than fresh enough and
+// avoids re-rendering this on every single navigation.
+export const revalidate = 3600;
 
 export default async function OnThisDayPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations("onThisDay");
   const facts = getAllFootballHistorySorted();
   const today = getTodaysFootballHistory();
