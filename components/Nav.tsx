@@ -24,6 +24,7 @@ export function Nav() {
     { href: "/history", label: t("history") },
     { href: "/on-this-day", label: tFooter("onThisDay") },
     { href: "/reviews", label: t("reviews") },
+    { href: "/weekly-picks", label: tFooter("weeklyPicks") },
     { href: "/leaderboard", label: tFooter("leaderboard") },
     { href: "/affiliate", label: tFooter("affiliate") },
     { href: "/pricing", label: t("pricing") },

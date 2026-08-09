@@ -43,7 +43,7 @@ function DurationPicker({ unit, setUnit, value, setValue }: { unit: DurationUnit
       <select
         value={unit}
         onChange={(e) => setUnit(e.target.value as DurationUnit)}
-        className="text-xs bg-surface2 border border-border rounded px-2 py-1.5 text-ink"
+        className="text-xs font-bold bg-lime/15 border-2 border-lime rounded px-2 py-1.5 text-lime focus:outline-none focus:ring-2 focus:ring-lime/50"
       >
         <option value="days">Μέρες</option>
         <option value="months">Μήνες</option>
