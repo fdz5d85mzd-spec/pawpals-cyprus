@@ -21,6 +21,7 @@ const config: Config = {
         amber: "#F2A900",
         blue: "#E8E8EA",
         rose: "#E23D3D",
+        green: "#22C55E",
         ink: "#FAFAFA",
         muted: "#A8A8AC",
         dim: "#6B6B70",

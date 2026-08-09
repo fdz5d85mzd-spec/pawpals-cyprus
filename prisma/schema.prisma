@@ -454,6 +454,10 @@ model PredictionResult {
 model PromoCode {
   id               String    @id @default(cuid())
   code             String    @unique
+  // How long PRO access lasts once redeemed — null means lifetime (matches
+  // the existing convention: a Subscription with no currentPeriodEnd never
+  // expires, same as a Stripe lifetime purchase).
+  durationDays     Int?
   redeemedByUserId String?
   redeemedBy       User?     @relation(fields: [redeemedByUserId], references: [id])
   redeemedAt       DateTime?

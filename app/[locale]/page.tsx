@@ -9,6 +9,7 @@ import { TopPicks, type TopPickItem } from "@/components/predictor/TopPicks";
 import { NewsFeed } from "@/components/predictor/NewsFeed";
 import { getLatestSportsNews } from "@/lib/news";
 import { Ticker } from "@/components/predictor/Ticker";
+import { LiveTicker } from "@/components/predictor/LiveTicker";
 import { OnThisDay } from "@/components/predictor/OnThisDay";
 import { getTodaysFootballHistory, getFallbackFootballFact } from "@/lib/football-history";
 import { Mascot } from "@/components/predictor/Mascot";
@@ -73,6 +74,7 @@ export default async function TodayPage({ params }: { params: Promise<{ locale: 
   return (
     <div className="relative">
       <Ticker items={tickerItems} />
+      <LiveTicker />
       <div className="relative overflow-hidden bg-bg pb-14 pt-12">
         <div
           className="absolute -top-32 -right-24 w-96 h-96 bg-lime"

@@ -9,6 +9,7 @@ import { getRevenueSummary } from "@/lib/stripe-revenue";
 import { Link } from "@/i18n/navigation";
 import { PromoCodeManager } from "@/components/admin/PromoCodeManager";
 import { MarkPaidButton } from "@/components/admin/MarkPaidButton";
+import { CommissionRateEditor } from "@/components/admin/CommissionRateEditor";
 
 export const dynamic = "force-dynamic";
 
@@ -75,11 +76,18 @@ export default async function AdminPage() {
       id: a.id,
       email: a.user.email,
       code: a.code,
+      commissionPercent: a.commissionPercent,
       totalCents: a.commissions.reduce((s, c) => s + c.amountCents, 0),
       pendingCents: a.commissions.filter((c) => c.status === "PENDING").reduce((s, c) => s + c.amountCents, 0),
     }))
     .sort((a, b) => b.totalCents - a.totalCents)
     .slice(0, 5);
+
+  const adminEmails = (process.env.ADMIN_EMAIL ?? "")
+    .split(",")
+    .map((e) => e.trim())
+    .filter(Boolean);
+  const halfMonthCents = Math.round((revenue.monthCents ?? 0) / 2);
 
   return (
     <div className="max-w-3xl mx-auto px-5 pt-8 pb-16">
@@ -102,6 +110,19 @@ export default async function AdminPage() {
           <StatCard label="Έσοδα σήμερα" value={formatEur(revenue.todayCents)} />
           <StatCard label="Έσοδα μήνα" value={formatEur(revenue.monthCents)} />
         </div>
+      )}
+
+      {adminEmails.length === 2 && (
+        <>
+          <div className="flex items-center gap-2 mb-3">
+            <Wallet size={13} className="text-dim" />
+            <span className="text-xs font-bold text-muted uppercase tracking-wide">Μοιρασμα κερδών (50/50, βάσει εσόδων μήνα)</span>
+          </div>
+          <div className="grid grid-cols-2 gap-2 mb-6">
+            <StatCard label={adminEmails[0]} value={formatEur(halfMonthCents)} accent />
+            <StatCard label={adminEmails[1]} value={formatEur(halfMonthCents)} accent />
+          </div>
+        </>
       )}
 
       <div className="flex items-center gap-2 mb-3">
@@ -132,6 +153,7 @@ export default async function AdminPage() {
             <thead>
               <tr className="text-[9px] uppercase tracking-wide font-mono text-dim border-b border-border/60">
                 <th className="text-left py-2.5 px-3">Συνεργάτης</th>
+                <th className="text-right py-2.5 px-3">Ποσοστό</th>
                 <th className="text-right py-2.5 px-3">Σύνολο</th>
                 <th className="text-right py-2.5 px-3">Προς πληρωμή</th>
                 <th className="text-right py-2.5 px-3"></th>
@@ -141,6 +163,9 @@ export default async function AdminPage() {
               {rankedAffiliates.map((a) => (
                 <tr key={a.code} className="border-b border-border/40 last:border-0">
                   <td className="py-2.5 px-3 text-ink">{a.email}</td>
+                  <td className="py-2.5 px-3 text-right font-mono">
+                    <CommissionRateEditor affiliateId={a.id} initialPercent={a.commissionPercent} />
+                  </td>
                   <td className="py-2.5 px-3 text-right font-mono font-bold text-lime">{formatEur(a.totalCents)}</td>
                   <td className="py-2.5 px-3 text-right font-mono text-amber">{formatEur(a.pendingCents)}</td>
                   <td className="py-2.5 px-3 text-right">{a.pendingCents > 0 && <MarkPaidButton affiliateId={a.id} />}</td>
@@ -180,7 +205,14 @@ export default async function AdminPage() {
         <span className="text-xs font-bold text-muted uppercase tracking-wide">Promo Codes</span>
       </div>
       <div className="mb-6">
-        <PromoCodeManager initialCodes={promoCodes.map((c) => ({ code: c.code, redeemedAt: c.redeemedAt?.toISOString() ?? null, redeemedBy: c.redeemedBy }))} />
+        <PromoCodeManager
+          initialCodes={promoCodes.map((c) => ({
+            code: c.code,
+            durationDays: c.durationDays,
+            redeemedAt: c.redeemedAt?.toISOString() ?? null,
+            redeemedBy: c.redeemedBy,
+          }))}
+        />
       </div>
 
       <div className="flex items-center gap-2 mb-2">
