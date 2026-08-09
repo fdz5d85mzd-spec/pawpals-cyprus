@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
-import { LayoutDashboard, Users, Handshake, MessageSquareWarning, Star, Lightbulb, Wallet, Ticket } from "lucide-react";
+import { LayoutDashboard, Users, Handshake, MessageSquareWarning, Star, Lightbulb, Wallet, Ticket, Megaphone } from "lucide-react";
 import { authOptions } from "@/lib/auth";
 import { isAdminEmail } from "@/lib/admin";
 import { prisma } from "@/lib/db";
@@ -10,6 +10,7 @@ import { Link } from "@/i18n/navigation";
 import { PromoCodeManager } from "@/components/admin/PromoCodeManager";
 import { MarkPaidButton } from "@/components/admin/MarkPaidButton";
 import { CommissionRateEditor } from "@/components/admin/CommissionRateEditor";
+import { AdSubmissionReview } from "@/components/admin/AdSubmissionReview";
 
 export const dynamic = "force-dynamic";
 
@@ -51,6 +52,7 @@ export default async function AdminPage() {
     reviewAgg,
     revenue,
     promoCodes,
+    pendingAdSubmissions,
   ] = await Promise.all([
     prisma.user.count(),
     prisma.user.count({ where: { createdAt: { gte: startOfToday } } }),
@@ -69,6 +71,11 @@ export default async function AdminPage() {
     prisma.siteReview.aggregate({ _avg: { rating: true }, _count: true }),
     getRevenueSummary(),
     prisma.promoCode.findMany({ orderBy: { createdAt: "desc" }, take: 30, include: { redeemedBy: { select: { email: true } } } }),
+    prisma.adSubmission.findMany({
+      where: { status: "PENDING_APPROVAL" },
+      include: { advertiser: { select: { email: true } } },
+      orderBy: { createdAt: "asc" },
+    }),
   ]);
 
   const rankedAffiliates = topAffiliates
@@ -199,6 +206,34 @@ export default async function AdminPage() {
         <span>·</span>
         <Link href="/suggestions" className="underline hover:text-ink">Δες εισηγήσεις</Link>
       </div>
+
+      <div className="flex items-center gap-2 mb-3">
+        <Megaphone size={13} className="text-dim" />
+        <span className="text-xs font-bold text-muted uppercase tracking-wide">
+          Αιτήσεις Διαφήμισης {pendingAdSubmissions.length > 0 && `(${pendingAdSubmissions.length})`}
+        </span>
+      </div>
+      {pendingAdSubmissions.length === 0 ? (
+        <div className="card p-4 text-xs text-dim mb-6">Καμία αίτηση σε αναμονή έγκρισης αυτή τη στιγμή.</div>
+      ) : (
+        <div className="grid sm:grid-cols-2 gap-3 mb-6">
+          {pendingAdSubmissions.map((s) => (
+            <AdSubmissionReview
+              key={s.id}
+              submission={{
+                id: s.id,
+                slotKey: s.slotKey,
+                position: s.position,
+                imageUrl: s.imageUrl,
+                linkUrl: s.linkUrl,
+                autoRenew: s.autoRenew,
+                advertiserEmail: s.advertiser.email,
+                createdAt: s.createdAt.toISOString(),
+              }}
+            />
+          ))}
+        </div>
+      )}
 
       <div className="flex items-center gap-2 mb-3">
         <Ticket size={13} className="text-dim" />

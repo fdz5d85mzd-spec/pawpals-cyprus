@@ -121,6 +121,79 @@ async function upsertFromSubscription(sub: Stripe.Subscription) {
   });
 }
 
+// Self-serve ad-slot subscriptions (see app/api/ads/submit/route.ts) are a
+// completely separate product from the Pro plan above — tagged with
+// metadata.purpose "ad_slot" on both the Checkout Session and the
+// Subscription it creates, specifically so none of this ever touches the
+// per-user Subscription table or the Pro-plan affiliate commission logic.
+async function handleAdSlotCheckoutCompleted(checkoutSession: Stripe.Checkout.Session) {
+  const submissionId = checkoutSession.metadata?.adSubmissionId;
+  if (!submissionId || !checkoutSession.subscription) return;
+
+  const subId =
+    typeof checkoutSession.subscription === "string" ? checkoutSession.subscription : checkoutSession.subscription.id;
+  const sub = await stripe.subscriptions.retrieve(subId);
+  const currentPeriodEnd = sub.items.data[0]?.current_period_end;
+  const customerId = typeof checkoutSession.customer === "string" ? checkoutSession.customer : checkoutSession.customer?.id;
+
+  const submission = await prisma.adSubmission.update({
+    where: { id: submissionId },
+    data: {
+      status: "PENDING_APPROVAL",
+      stripeCustomerId: customerId,
+      stripeSubscriptionId: sub.id,
+      currentPeriodEnd: currentPeriodEnd ? new Date(currentPeriodEnd * 1000) : undefined,
+    },
+  });
+
+  // Checkout doesn't accept cancel_at_period_end at session-creation time —
+  // applying it right after the subscription exists is the reliable way to
+  // honor an advertiser's "don't auto-renew" choice.
+  if (!submission.autoRenew) {
+    await stripe.subscriptions.update(sub.id, { cancel_at_period_end: true }).catch(() => {});
+  }
+}
+
+async function handleAdSlotSubscriptionChange(sub: Stripe.Subscription) {
+  const submissionId = sub.metadata.adSubmissionId;
+  if (!submissionId) return;
+
+  const endedStatuses: Stripe.Subscription.Status[] = ["canceled", "unpaid", "incomplete_expired"];
+  if (endedStatuses.includes(sub.status)) {
+    // Take the live banner down immediately — but never overwrite a
+    // submission an admin already rejected (that cancellation was our own
+    // doing, from the reject route, not the advertiser's).
+    await prisma.adSubmission.updateMany({
+      where: { id: submissionId, status: { not: "REJECTED" } },
+      data: { status: "CANCELED" },
+    });
+    await prisma.adBanner.deleteMany({ where: { sourceSubmissionId: submissionId } });
+    return;
+  }
+
+  const currentPeriodEnd = sub.items.data[0]?.current_period_end;
+  await prisma.adSubmission
+    .update({
+      where: { id: submissionId },
+      data: { currentPeriodEnd: currentPeriodEnd ? new Date(currentPeriodEnd * 1000) : undefined },
+    })
+    .catch(() => {});
+}
+
+// Stripe moved an invoice's subscription reference around across API
+// versions (top-level `subscription` vs nested under
+// `parent.subscription_details`) — checking both keeps this working
+// regardless of which shape the pinned apiVersion actually returns.
+function getInvoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
+  const direct = (invoice as unknown as { subscription?: string | { id: string } | null }).subscription;
+  if (direct) return typeof direct === "string" ? direct : direct.id;
+  const nested = (
+    invoice as unknown as { parent?: { subscription_details?: { subscription?: string | { id: string } | null } } }
+  ).parent?.subscription_details?.subscription;
+  if (nested) return typeof nested === "string" ? nested : nested.id;
+  return null;
+}
+
 export async function POST(req: NextRequest) {
   const body = await req.text();
   const signature = req.headers.get("stripe-signature");
@@ -135,6 +208,15 @@ export async function POST(req: NextRequest) {
   switch (event.type) {
     case "checkout.session.completed": {
       const checkoutSession = event.data.object as Stripe.Checkout.Session;
+
+      // Ad-slot purchases are a separate product from the Pro plan — handle
+      // and bail out before any of the Pro/referral logic below, none of
+      // which applies to this money.
+      if (checkoutSession.metadata?.purpose === "ad_slot") {
+        await handleAdSlotCheckoutCompleted(checkoutSession);
+        break;
+      }
+
       if (checkoutSession.mode === "subscription" && checkoutSession.subscription) {
         const subId =
           typeof checkoutSession.subscription === "string"
@@ -183,7 +265,12 @@ export async function POST(req: NextRequest) {
     }
     case "customer.subscription.updated":
     case "customer.subscription.deleted": {
-      await upsertFromSubscription(event.data.object as Stripe.Subscription);
+      const sub = event.data.object as Stripe.Subscription;
+      if (sub.metadata?.purpose === "ad_slot") {
+        await handleAdSlotSubscriptionChange(sub);
+      } else {
+        await upsertFromSubscription(sub);
+      }
       break;
     }
     case "invoice.paid": {
@@ -191,6 +278,19 @@ export async function POST(req: NextRequest) {
       // and every renewal after it — see grantAffiliateCommission's comment
       // for why lifetime is handled separately above instead of here.
       const invoice = event.data.object as Stripe.Invoice;
+
+      // Ad-slot renewals must never grant Pro-plan affiliate commission —
+      // check whether this invoice's subscription belongs to an ad
+      // submission before falling through to the Pro-plan logic below.
+      const invoiceSubId = getInvoiceSubscriptionId(invoice);
+      if (invoiceSubId) {
+        const adSubmission = await prisma.adSubmission.findFirst({
+          where: { stripeSubscriptionId: invoiceSubId },
+          select: { id: true },
+        });
+        if (adSubmission) break;
+      }
+
       const customerId = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
       if (customerId && invoice.amount_paid > 0) {
         const sub = await prisma.subscription.findUnique({ where: { stripeCustomerId: customerId } });
@@ -213,6 +313,19 @@ export async function POST(req: NextRequest) {
       // (it would just retry forever).
       const checkoutSession = event.data.object as Stripe.Checkout.Session;
       const userId = checkoutSession.metadata?.userId;
+
+      if (checkoutSession.metadata?.purpose === "ad_slot") {
+        // Never paid — delete the AWAITING_PAYMENT row rather than leaving
+        // it stuck forever, otherwise it'd permanently block anyone
+        // (including a retry by the same advertiser) from that slot.
+        const submissionId = checkoutSession.metadata?.adSubmissionId;
+        if (submissionId) {
+          await prisma.adSubmission.deleteMany({ where: { id: submissionId, status: "AWAITING_PAYMENT" } });
+        }
+        break;
+      }
+
+      // This is a Pro-plan-specific nudge email, so it's skipped above for ads.
       if (userId && process.env.RESEND_API_KEY) {
         try {
           const user = await prisma.user.findUnique({ where: { id: userId } });
