@@ -9,6 +9,8 @@ import { PromoRedeemForm } from "@/components/PromoRedeemForm";
 import { ReferralCard } from "@/components/ReferralCard";
 import { PushNotificationToggle } from "@/components/PushNotificationToggle";
 import { generateReferralCode } from "@/lib/referral";
+import { getBadges } from "@/lib/badges";
+import { BadgeRow } from "@/components/BadgeRow";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +37,7 @@ export default async function AccountPage() {
   }
   const appliedRewards = user?.rewardsEarned.filter((r) => r.appliedAt).length ?? 0;
   const pendingRewards = user?.rewardsEarned.filter((r) => !r.appliedAt).length ?? 0;
+  const badges = user ? getBadges({ totalPicks, hitPicks, memberSince: user.createdAt }) : [];
 
   return (
     <div className="relative overflow-hidden flex items-center justify-center px-5 py-16 min-h-[calc(100vh-3.5rem)]">
@@ -81,6 +84,12 @@ export default async function AccountPage() {
           {t("viewAll")}
         </Link>
       </div>
+      {badges.length > 0 && (
+        <div className="card p-5 mt-4">
+          <div className="text-xs text-muted mb-3">Επιτεύγματα</div>
+          <BadgeRow badges={badges} />
+        </div>
+      )}
       </div>
     </div>
   );
