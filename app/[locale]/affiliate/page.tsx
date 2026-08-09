@@ -19,14 +19,20 @@ export default async function AffiliatePage() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) redirect("/login");
   const t = await getTranslations("affiliate");
+  const isAdmin = !!session.user.isAdmin;
 
-  const affiliate = await prisma.affiliate.findUnique({
-    where: { userId: session.user.id },
-    include: {
-      commissions: { orderBy: { createdAt: "desc" }, take: 20, include: { referredUser: true } },
-      _count: { select: { clicks: true, referredSignups: true } },
-    },
-  });
+  // Admins never get a real affiliate dashboard — this page only opens for
+  // them as a reference/preview (e.g. to check copy or debug the flow),
+  // never a path to actually earning commission on top of their 50/50 split.
+  const affiliate = isAdmin
+    ? null
+    : await prisma.affiliate.findUnique({
+        where: { userId: session.user.id },
+        include: {
+          commissions: { orderBy: { createdAt: "desc" }, take: 20, include: { referredUser: true } },
+          _count: { select: { clicks: true, referredSignups: true } },
+        },
+      });
 
   if (!affiliate) {
     const exampleEarning = (MONTHLY_PRICE_EUR * 20) / 100;
@@ -48,7 +54,11 @@ export default async function AffiliatePage() {
             earning: `${(exampleEarning * 10).toFixed(2)}€`,
           })}
         </p>
-        <AffiliateActivateButton label={t("activateCta")} />
+        {isAdmin ? (
+          <p className="text-xs text-dim border border-border/60 px-3 py-2.5">{t("adminReferenceNote")}</p>
+        ) : (
+          <AffiliateActivateButton label={t("activateCta")} />
+        )}
       </div>
     );
   }

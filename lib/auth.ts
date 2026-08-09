@@ -46,13 +46,15 @@ export const authOptions: AuthOptions = {
           where: { id: token.userId as string },
           include: { subscription: true },
         });
+        const isAdmin = isAdminEmail(dbUser?.email);
         const activePaid = dbUser?.subscription?.status === "active" && dbUser.subscription.plan === "PRO";
         const inTrial = !!dbUser?.trialEndsAt && dbUser.trialEndsAt.getTime() > Date.now();
-        token.plan = activePaid || inTrial ? "PRO" : "FREE";
+        // Master admins get full Pro access for free, no subscription needed.
+        token.plan = isAdmin || activePaid || inTrial ? "PRO" : "FREE";
         // Only surface the trial countdown while it's the reason for PRO
-        // access — a real paying user doesn't need a "trial ending" clock.
-        token.trialEndsAt = inTrial && !activePaid ? dbUser!.trialEndsAt!.toISOString() : null;
-        token.isAdmin = isAdminEmail(dbUser?.email);
+        // access — a real paying user (or admin) doesn't need a "trial ending" clock.
+        token.trialEndsAt = inTrial && !activePaid && !isAdmin ? dbUser!.trialEndsAt!.toISOString() : null;
+        token.isAdmin = isAdmin;
       }
       return token;
     },
