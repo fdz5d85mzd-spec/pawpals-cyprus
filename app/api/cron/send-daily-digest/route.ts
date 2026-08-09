@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
 
   const recipients = await prisma.user.findMany({
     where: { emailUpdatesOptIn: true },
-    select: { email: true },
+    select: { id: true, email: true },
   });
 
   const { subject, html } = buildDigestEmail(picks);
@@ -104,9 +104,37 @@ export async function GET(req: NextRequest) {
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const weekly = await getOverallAccuracy(sevenDaysAgo);
     if (weekly.total > 0) {
-      const { subject, html } = buildWeeklyRecapEmail(weekly);
-      for (const { email } of recipients) {
+      // Per-user picks this week, aggregated in JS rather than N queries —
+      // also lets us rank each recipient against everyone else who picked
+      // this week for the "better than X%" line.
+      const weekPicks = await prisma.userPick.findMany({
+        where: { createdAt: { gte: sevenDaysAgo }, hit: { not: null } },
+        select: { userId: true, hit: true },
+      });
+      const byUser = new Map<string, { total: number; correct: number }>();
+      for (const p of weekPicks) {
+        const entry = byUser.get(p.userId) ?? { total: 0, correct: 0 };
+        entry.total++;
+        if (p.hit) entry.correct++;
+        byUser.set(p.userId, entry);
+      }
+      const allAccuracies = [...byUser.values()].map((v) => v.correct / v.total);
+
+      for (const { id, email } of recipients) {
         try {
+          const mine = byUser.get(id);
+          const personal = mine
+            ? {
+                picks: mine.total,
+                hits: mine.correct,
+                pct: Math.round((mine.correct / mine.total) * 100),
+                percentile:
+                  allAccuracies.length > 1
+                    ? Math.round((allAccuracies.filter((a) => a < mine.correct / mine.total).length / allAccuracies.length) * 100)
+                    : null,
+              }
+            : undefined;
+          const { subject, html } = buildWeeklyRecapEmail({ ...weekly, personal });
           await resend.emails.send({ from: DIGEST_FROM, to: email, subject, html });
           weeklyRecapSent++;
         } catch {
