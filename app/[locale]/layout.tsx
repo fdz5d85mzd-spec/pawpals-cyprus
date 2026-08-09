@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
+import { setRequestLocale } from "next-intl/server";
 import { Analytics } from "@vercel/analytics/next";
 import { routing } from "@/i18n/routing";
 import { Providers } from "@/components/Providers";
@@ -32,6 +33,12 @@ export default async function RootLayout({
 }) {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
+  // Pins the locale for this request instead of letting next-intl infer it
+  // from headers/cookies — that inference is a "dynamic API" that forces
+  // every page in the tree to fully re-render on the server on every
+  // request. Pinning it here (plus in each page below) is what actually
+  // lets `export const revalidate` on those pages take effect.
+  setRequestLocale(locale);
 
   return (
     <html lang={locale}>

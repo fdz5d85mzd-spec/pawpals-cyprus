@@ -1,4 +1,4 @@
-import { getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { CalendarRange, Clock } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { prisma } from "@/lib/db";
@@ -6,7 +6,10 @@ import { presentPrediction } from "@/lib/present";
 import { buildMatchNarrative } from "@/lib/narrative";
 import type { FormResult } from "@/lib/model";
 
-export const dynamic = "force-dynamic";
+// Public, non-personalized — predictions only change via freeze-predictions
+// (once daily), so a short revalidate avoids a full server round-trip on
+// every navigation.
+export const revalidate = 60;
 
 function pickLabelFor(model: { winHome: number; draw: number; winAway: number }, homeName: string, awayName: string, drawLabel: string) {
   if (model.winHome >= model.draw && model.winHome >= model.winAway) return { label: homeName, pct: model.winHome };
@@ -16,6 +19,7 @@ function pickLabelFor(model: { winHome: number; draw: number; winAway: number },
 
 export default async function WeeklyPicksPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations("weeklyPicks");
   const tHome = await getTranslations("home");
 

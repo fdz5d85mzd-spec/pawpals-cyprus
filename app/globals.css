@@ -6,12 +6,14 @@
 
 body {
   background-color: #0b0b0d;
-  /* Floodlight-over-a-pitch feel instead of flat black — a warm glow from
-     above (like stadium lights) and a faint glow from the corner, both in
-     our own lime accent rather than a licensed stadium photo. Fixed so it
-     reads as one continuous backdrop behind every page, not a per-page tile. */
-  background-image: radial-gradient(ellipse 140% 60% at 50% -10%, rgba(255, 200, 0, 0.09), transparent 60%),
-    radial-gradient(ellipse 90% 60% at 100% 110%, rgba(255, 200, 0, 0.05), transparent 60%),
+  /* Stadium-floodlight feel instead of flat black: two bright glows firing
+     down from the top corners (like arena lights over a pitch) plus a
+     softer center glow, all in our own lime accent rather than a licensed
+     stadium photo. Fixed so it reads as one continuous backdrop behind
+     every page, not a per-page tile. */
+  background-image: radial-gradient(ellipse 55% 45% at 6% 0%, rgba(255, 200, 0, 0.24), transparent 62%),
+    radial-gradient(ellipse 55% 45% at 94% 0%, rgba(255, 200, 0, 0.18), transparent 62%),
+    radial-gradient(ellipse 140% 60% at 50% -5%, rgba(255, 200, 0, 0.1), transparent 60%),
     linear-gradient(180deg, #0b0b0d 0%, #101013 45%, #0b0b0d 100%);
   background-attachment: fixed;
   color: #fafafa;

@@ -1,4 +1,4 @@
-import { getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Sigma, Clock, ArrowRight } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { prisma } from "@/lib/db";
@@ -29,9 +29,15 @@ function pickLabelFor(
   return { label: drawLabel, pct: model.draw };
 }
 
-export const dynamic = "force-dynamic";
+// Public, non-personalized — predictions/news/accuracy only change via
+// crons (hourly at the fastest), so a short revalidate avoids a full DB
+// round-trip on every single navigation to the homepage, the single most
+// common page transition on the site.
+export const revalidate = 60;
 
-export default async function TodayPage() {
+export default async function TodayPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations("home");
   const [fixtures, news, overallAccuracy, adBanners] = await Promise.all([
     prisma.fixture.findMany({

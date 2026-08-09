@@ -1,12 +1,24 @@
 import Link from "next/link";
 import { ListOrdered } from "lucide-react";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { prisma } from "@/lib/db";
 import { Eyebrow } from "@/components/predictor/ui";
 
-export const dynamic = "force-dynamic";
+// Public, non-personalized data that only changes via the daily
+// sync-standings cron — a short revalidate window avoids a full
+// server round-trip on every single navigation while staying fresh
+// enough (the underlying data itself is at most a few hours old).
+export const revalidate = 60;
 
-export default async function StandingsPage({ searchParams }: { searchParams: Promise<{ league?: string }> }) {
+export default async function StandingsPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ league?: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const { league: leagueParam } = await searchParams;
   const t = await getTranslations("standings");
 
