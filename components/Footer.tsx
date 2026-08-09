@@ -35,7 +35,10 @@ export function Footer() {
     },
     {
       title: t("legal"),
-      links: [{ href: "/terms", label: t("terms") }],
+      links: [
+        { href: "/terms", label: t("terms") },
+        { href: "/privacy", label: "Πολιτική Απορρήτου" },
+      ],
     },
   ] as const;
 
