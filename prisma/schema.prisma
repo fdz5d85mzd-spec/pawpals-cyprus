@@ -499,6 +499,21 @@ model PredictionResult {
   @@unique([predictionId, market])
 }
 
+// One row per thing ever auto-posted to a social platform (see
+// app/api/cron/social-post/route.ts and lib/facebook.ts) — purely a
+// dedupe guard so the same correct-prediction fixture, daily pick, or
+// weekly recap never gets posted twice.
+model SocialPost {
+  id       String   @id @default(cuid())
+  kind     String // "correct_prediction" | "pick_of_day" | "weekly_accuracy"
+  refId    String // fixture id, or an ISO week key like "2026-W32"
+  platform String // "facebook" (room for "tiktok" later)
+  message  String
+  postedAt DateTime @default(now())
+
+  @@unique([kind, refId, platform])
+}
+
 // Free-Pro-access codes, redeemed once each. Grants PRO directly on
 // Subscription without going through Stripe (no card required).
 model PromoCode {
