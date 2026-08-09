@@ -75,7 +75,7 @@ export default async function TodayPage({ params }: { params: Promise<{ locale: 
     <div className="relative">
       <Ticker items={tickerItems} />
       <LiveTicker />
-      <div className="relative overflow-hidden bg-bg pb-14 pt-12">
+      <div className="relative overflow-hidden pb-14 pt-12">
         <div
           className="absolute -top-32 -right-24 w-96 h-96 bg-lime"
           style={{ transform: "rotate(24deg)" }}
