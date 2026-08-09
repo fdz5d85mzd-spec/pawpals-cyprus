@@ -1,9 +1,28 @@
-export function buildWeeklyRecapEmail(params: { total: number; correct: number; accuracy: number }): {
+export interface PersonalWeeklyStats {
+  picks: number;
+  hits: number;
+  pct: number;
+  percentile: number | null; // null when there aren't enough other users this week to rank against
+}
+
+export function buildWeeklyRecapEmail(params: { total: number; correct: number; accuracy: number; personal?: PersonalWeeklyStats }): {
   subject: string;
   html: string;
 } {
-  const { total, correct, accuracy } = params;
+  const { total, correct, accuracy, personal } = params;
   const subject = `Skorama: η εβδομάδα σε νούμερα — ${accuracy}% ακρίβεια`;
+  const personalBlock = personal
+    ? `
+      <div style="background:#161618; border:1px solid #FFC800; padding:24px; margin-bottom:20px;">
+        <div style="font-size:12px; color:#A8A8AC; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">Οι δικές σου προγνώσεις</div>
+        <div style="font-size:32px; font-weight:800; color:#FFC800; font-family: monospace;">${personal.hits}/${personal.picks} <span style="font-size:16px; color:#A8A8AC;">(${personal.pct}%)</span></div>
+        ${
+          personal.percentile !== null
+            ? `<div style="font-size:13px; color:#A8A8AC; margin-top:6px;">Καλύτερος/η από το ${personal.percentile}% των χρηστών αυτή την εβδομάδα</div>`
+            : ""
+        }
+      </div>`
+    : "";
   const html = `
     <div style="font-family: Arial, Helvetica, sans-serif; max-width: 480px; margin: 0 auto; background: #0B0B0D; color: #FAFAFA; padding: 32px 24px;">
       <div style="display:flex; align-items:center; gap:10px; margin-bottom:24px;">
@@ -12,7 +31,9 @@ export function buildWeeklyRecapEmail(params: { total: number; correct: number; 
       </div>
       <h1 style="font-size:22px; margin:0 0 4px;">Η εβδομάδα σε νούμερα</h1>
       <p style="font-size:13px; color:#6B6B70; margin:0 0 24px;">Τελευταίες 7 μέρες</p>
+      ${personalBlock}
       <div style="background:#161618; border:1px solid #2E2E33; padding:24px; margin-bottom:20px;">
+        <div style="font-size:12px; color:#A8A8AC; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">Ακρίβεια μοντέλου</div>
         <div style="font-size:44px; font-weight:800; color:#FFC800; font-family: monospace;">${accuracy}%</div>
         <div style="font-size:13px; color:#A8A8AC; margin-top:6px;">
           ${correct} σωστές προγνώσεις σε ${total} αγορές που κρίθηκαν
