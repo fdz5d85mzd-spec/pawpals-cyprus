@@ -115,6 +115,8 @@
     "linkLabel": "Your link",
     "copy": "Copy",
     "shareText": "Sign up for free on Skorama (football statistical predictions) with my link:",
+    "qrLabel": "Your own QR code — anyone who scans it counts as your customer",
+    "downloadQr": "Download QR",
     "clicks": "Clicks",
     "signups": "Signups",
     "payingCustomers": "Paying customers",
