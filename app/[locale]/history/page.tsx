@@ -99,7 +99,7 @@ export default async function HistoryPage({ params }: { params: Promise<{ locale
             </div>
             <span
               className={`text-[10px] px-2.5 py-1 rounded-full font-bold font-mono shrink-0 ml-2 ${
-                r.hit ? "bg-lime/15 text-lime" : "bg-rose/15 text-rose"
+                r.hit ? "bg-green/15 text-green" : "bg-rose/15 text-rose"
               }`}
             >
               {r.hit ? t("hit") : t("miss")}

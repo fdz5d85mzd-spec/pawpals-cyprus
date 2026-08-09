@@ -21,7 +21,7 @@ async function throttledMap<T, R>(items: T[], delayMs: number, fn: (item: T) => 
   return results;
 }
 
-async function afFetch<T>(path: string, params: Record<string, string | number> = {}): Promise<T> {
+async function afFetch<T>(path: string, params: Record<string, string | number> = {}, revalidateSeconds = 300): Promise<T> {
   const url = new URL(BASE_URL + path);
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, String(v));
 
@@ -31,7 +31,8 @@ async function afFetch<T>(path: string, params: Record<string, string | number> 
     },
     // Fixture/team data changes slowly enough that a short edge cache is fine
     // on top of our own Postgres cache; the daily cron is the real cache layer.
-    next: { revalidate: 300 },
+    // Live-score callers pass a much shorter window (see getLiveFixtures).
+    next: { revalidate: revalidateSeconds },
   });
 
   if (!res.ok) {
@@ -57,7 +58,7 @@ export interface AFFixture {
     id: number;
     date: string;
     venue: { name: string | null };
-    status: { short: string }; // "NS" not started | "FT" full time | "LIVE" etc.
+    status: { short: string; elapsed: number | null }; // "NS" not started | "FT" full time | "1H"/"2H"/etc while live
   };
   league: { id: number; season: number; name: string; country: string };
   teams: {
@@ -117,6 +118,38 @@ export function currentSeasonYear(): number {
   const now = new Date();
   const month = now.getUTCMonth() + 1; // 1-12
   return month >= 7 ? now.getUTCFullYear() : now.getUTCFullYear() - 1;
+}
+
+export interface LiveScore {
+  fixtureId: number;
+  homeName: string;
+  awayName: string;
+  homeGoals: number;
+  awayGoals: number;
+  elapsed: number | null;
+  statusShort: string;
+}
+
+const TRACKED_LEAGUE_IDS = new Set(TRACKED_LEAGUES.map((l) => l.id));
+
+// A second, separate "crawl" from the prediction ticker: real live scores
+// for matches in progress right now, not model output. `live=all` returns
+// every in-play fixture worldwide, so this filters down to leagues we
+// actually track — a much shorter cache window than the rest of the
+// client (30s, not 5min) since a live score going stale looks broken.
+export async function getLiveFixtures(): Promise<LiveScore[]> {
+  const fixtures = await afFetch<AFFixture[]>("/fixtures", { live: "all" }, 30);
+  return fixtures
+    .filter((f) => TRACKED_LEAGUE_IDS.has(f.league.id))
+    .map((f) => ({
+      fixtureId: f.fixture.id,
+      homeName: f.teams.home.name,
+      awayName: f.teams.away.name,
+      homeGoals: f.goals.home ?? 0,
+      awayGoals: f.goals.away ?? 0,
+      elapsed: f.fixture.status.elapsed,
+      statusShort: f.fixture.status.short,
+    }));
 }
 
 export interface FixturesWindowResult {

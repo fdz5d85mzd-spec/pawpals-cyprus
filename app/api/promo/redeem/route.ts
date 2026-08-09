@@ -26,15 +26,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Ο κωδικός έχει ήδη χρησιμοποιηθεί." }, { status: 409 });
   }
 
+  const redeemedAt = new Date();
+  const currentPeriodEnd =
+    promo.durationDays != null ? new Date(redeemedAt.getTime() + promo.durationDays * 86400000) : null;
+
   await prisma.$transaction([
     prisma.promoCode.update({
       where: { code },
-      data: { redeemedByUserId: session.user.id, redeemedAt: new Date() },
+      data: { redeemedByUserId: session.user.id, redeemedAt },
     }),
     prisma.subscription.upsert({
       where: { userId: session.user.id },
-      create: { userId: session.user.id, plan: "PRO", status: "active" },
-      update: { plan: "PRO", status: "active" },
+      create: { userId: session.user.id, plan: "PRO", status: "active", currentPeriodEnd },
+      update: { plan: "PRO", status: "active", currentPeriodEnd },
     }),
   ]);
 
