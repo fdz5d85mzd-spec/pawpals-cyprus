@@ -4,6 +4,7 @@ import { getFixtureById } from "@/lib/api-football";
 import { gradePrediction } from "@/lib/settle";
 import { prisma } from "@/lib/db";
 import { FixtureStatus } from "@prisma/client";
+import { getWebPushClient } from "@/lib/push";
 
 export const dynamic = "force-dynamic";
 
@@ -23,8 +24,10 @@ export async function GET(req: NextRequest) {
       status: { not: FixtureStatus.FINISHED },
       prediction: { isNot: null },
     },
-    include: { prediction: true },
+    include: { prediction: true, homeTeam: true, awayTeam: true },
   });
+
+  const webpush = process.env.VAPID_PRIVATE_KEY ? getWebPushClient() : null;
 
   let settled = 0;
   const errors: { fixtureId: number; error: string }[] = [];
@@ -75,6 +78,34 @@ export async function GET(req: NextRequest) {
         where: { fixtureId: fixture.id, pick: { not: actualPick } },
         data: { hit: false },
       });
+
+      // Best-effort, per-user "your pick was right/wrong" push — separate
+      // from the daily digest's single broadcast message, since this one
+      // differs per recipient depending on what they actually picked.
+      if (webpush) {
+        const userPicks = await prisma.userPick.findMany({
+          where: { fixtureId: fixture.id },
+          include: { user: { include: { pushSubscriptions: true } } },
+        });
+        const scoreLine = `${af.goals.home}-${af.goals.away}`;
+        for (const up of userPicks) {
+          const payload = JSON.stringify({
+            title: up.hit ? "Το πέτυχες! 🎯" : "Δεν το πέτυχες αυτή τη φορά",
+            body: `${fixture.homeTeam.name} ${scoreLine} ${fixture.awayTeam.name}`,
+            url: `/match/${fixture.id}`,
+          });
+          for (const sub of up.user.pushSubscriptions) {
+            try {
+              await webpush.sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } }, payload);
+            } catch (err) {
+              const statusCode = (err as { statusCode?: number }).statusCode;
+              if (statusCode === 404 || statusCode === 410) {
+                await prisma.pushSubscription.delete({ where: { id: sub.id } }).catch(() => {});
+              }
+            }
+          }
+        }
+      }
 
       settled++;
     } catch (err) {
