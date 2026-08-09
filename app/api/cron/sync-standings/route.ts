@@ -28,8 +28,8 @@ export async function GET(req: NextRequest) {
 
       await prisma.league.upsert({
         where: { id: league.id },
-        create: { id: league.id, name: leagueMeta.name, country: leagueMeta.country, season: leagueMeta.season },
-        update: { name: leagueMeta.name, country: leagueMeta.country, season: leagueMeta.season },
+        create: { id: league.id, name: leagueMeta.name, country: leagueMeta.country, season: leagueMeta.season, logoUrl: leagueMeta.logo },
+        update: { name: leagueMeta.name, country: leagueMeta.country, season: leagueMeta.season, logoUrl: leagueMeta.logo },
       });
 
       for (const row of rows) {
@@ -38,6 +38,13 @@ export async function GET(req: NextRequest) {
         // fixture window yet.
         const team = await prisma.team.findUnique({ where: { id: row.team.id } });
         if (!team) continue;
+
+        // Standings cover every team in the league table, not just ones with
+        // an upcoming fixture — a good second chance to backfill a crest for
+        // any team sync-fixtures hasn't refreshed yet.
+        if (row.team.logo && team.logoUrl !== row.team.logo) {
+          await prisma.team.update({ where: { id: team.id }, data: { logoUrl: row.team.logo } });
+        }
 
         await prisma.standing.upsert({
           where: { leagueId_teamId: { leagueId: league.id, teamId: row.team.id } },

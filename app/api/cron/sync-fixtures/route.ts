@@ -27,8 +27,8 @@ export async function GET(req: NextRequest) {
   for (const f of fixtures) {
     await prisma.league.upsert({
       where: { id: f.league.id },
-      create: { id: f.league.id, name: f.league.name, country: f.league.country, season: f.league.season },
-      update: { season: f.league.season, name: f.league.name, country: f.league.country },
+      create: { id: f.league.id, name: f.league.name, country: f.league.country, season: f.league.season, logoUrl: f.league.logo },
+      update: { season: f.league.season, name: f.league.name, country: f.league.country, logoUrl: f.league.logo },
     });
 
     await prisma.team.upsert({
@@ -38,8 +38,9 @@ export async function GET(req: NextRequest) {
         name: f.teams.home.name,
         shortName: f.teams.home.name.slice(0, 4).toUpperCase(),
         leagueId: f.league.id,
+        logoUrl: f.teams.home.logo,
       },
-      update: { name: f.teams.home.name },
+      update: { name: f.teams.home.name, logoUrl: f.teams.home.logo },
     });
     await prisma.team.upsert({
       where: { id: f.teams.away.id },
@@ -48,8 +49,9 @@ export async function GET(req: NextRequest) {
         name: f.teams.away.name,
         shortName: f.teams.away.name.slice(0, 4).toUpperCase(),
         leagueId: f.league.id,
+        logoUrl: f.teams.away.logo,
       },
-      update: { name: f.teams.away.name },
+      update: { name: f.teams.away.name, logoUrl: f.teams.away.logo },
     });
 
     await prisma.fixture.upsert({

@@ -60,10 +60,10 @@ export interface AFFixture {
     venue: { name: string | null };
     status: { short: string; elapsed: number | null }; // "NS" not started | "FT" full time | "1H"/"2H"/etc while live
   };
-  league: { id: number; season: number; name: string; country: string };
+  league: { id: number; season: number; name: string; country: string; logo: string | null };
   teams: {
-    home: { id: number; name: string };
-    away: { id: number; name: string };
+    home: { id: number; name: string; logo: string | null };
+    away: { id: number; name: string; logo: string | null };
   };
   goals: { home: number | null; away: number | null };
   score: {
@@ -202,7 +202,7 @@ export async function getTeamStatistics(teamId: number, leagueId: number, season
 
 export interface AFStandingRow {
   rank: number;
-  team: { id: number; name: string };
+  team: { id: number; name: string; logo: string | null };
   points: number;
   goalsDiff: number;
   form: string | null;
@@ -221,6 +221,7 @@ interface AFStandingsResponse {
     name: string;
     country: string;
     season: number;
+    logo: string | null;
     standings: AFStandingRow[][];
   };
 }
