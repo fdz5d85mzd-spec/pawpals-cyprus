@@ -6,11 +6,11 @@ import { postPhotoToTikTok } from "@/lib/tiktok";
 
 export const dynamic = "force-dynamic";
 
-// Admin-only manual trigger: posts one test photo to the connected TikTok
-// account (SELF_ONLY visibility, since the app is unaudited). Exists so the
-// review demo video has something concrete to record — the real automated
-// posting pipeline (mirroring lib/social-copy.ts) comes after the app
-// passes TikTok's review.
+// Admin-only manual trigger: sends one test photo to the connected TikTok
+// account's draft inbox (video.upload is the only granted scope right now —
+// see lib/tiktok.ts). Exists so the review demo video has something
+// concrete to record — the real automated posting pipeline (mirroring
+// lib/social-copy.ts) comes after the app is granted Direct Post.
 export async function POST() {
   const session = await getServerSession(authOptions);
   if (!isAdminEmail(session?.user?.email)) {

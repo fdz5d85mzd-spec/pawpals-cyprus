@@ -14,7 +14,10 @@ export function getTikTokAuthorizeUrl(state: string): string {
 
   const params = new URLSearchParams({
     client_key: clientKey,
-    scope: "user.info.basic,video.publish,video.upload",
+    // video.publish (Direct Post) needs a separate, stricter TikTok review
+    // beyond just adding the Content Posting API product — until that's
+    // granted, video.upload (draft-to-inbox) is what's actually available.
+    scope: "user.info.basic,video.upload",
     response_type: "code",
     redirect_uri: getRedirectUri(),
     state,
@@ -111,9 +114,14 @@ export async function getValidTikTokAccessToken(): Promise<string> {
   return data.access_token;
 }
 
-// Posts a single image via the Content Posting API (photo mode). Unaudited
-// apps are restricted to SELF_ONLY visibility by TikTok — this only
-// becomes publicly visible once the app passes review and that's changed.
+// Posts a single image via the Content Posting API (photo mode, draft
+// upload). The app only has the video.upload scope right now, not
+// video.publish — TikTok gates true one-step Direct Post behind a
+// separate, stricter review beyond just adding the Content Posting API
+// product. MEDIA_UPLOAD sends it to the connected account's TikTok inbox
+// as a draft; a person still has to open the app and tap Post to finish.
+// Switch post_mode to "DIRECT_POST" (and add post_info.privacy_level etc.)
+// once that capability is granted.
 export async function postPhotoToTikTok(input: { imageUrl: string; caption: string }): Promise<{ publishId: string }> {
   const accessToken = await getValidTikTokAccessToken();
 
@@ -123,18 +131,13 @@ export async function postPhotoToTikTok(input: { imageUrl: string; caption: stri
     body: JSON.stringify({
       post_info: {
         title: input.caption,
-        privacy_level: "SELF_ONLY",
-        disable_duet: true,
-        disable_comment: false,
-        disable_stitch: true,
-        auto_add_music: true,
       },
       source_info: {
         source: "PULL_FROM_URL",
         photo_cover_index: 0,
         photo_images: [input.imageUrl],
       },
-      post_mode: "DIRECT_POST",
+      post_mode: "MEDIA_UPLOAD",
       media_type: "PHOTO",
     }),
   });

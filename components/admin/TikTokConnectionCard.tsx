@@ -61,8 +61,9 @@ export function TikTokConnectionCard({ connected }: { connected: boolean }) {
       </div>
       {result && <p className="text-[11px] text-muted mt-2">{result}</p>}
       <p className="text-[10px] text-dim mt-3 leading-relaxed">
-        Όσο η εφαρμογή δεν έχει περάσει από έλεγχο της TikTok, τα posts είναι ορατά μόνο στον δικό σου λογαριασμό
-        (SELF_ONLY) — χρήσιμο για το demo video της αίτησης.
+        Το post στέλνεται σαν πρόχειρο (draft) στην εφαρμογή TikTok — χρειάζεται να ανοίξεις το κινητό και να πατήσεις
+        &ldquo;Post&rdquo; για να δημοσιευτεί. Πλήρως αυτόματο posting θα ενεργοποιηθεί μόλις εγκριθεί το &ldquo;Direct
+        Post&rdquo; από την TikTok.
       </p>
     </div>
   );
