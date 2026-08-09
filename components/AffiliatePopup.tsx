@@ -13,13 +13,15 @@ const SHOW_DELAY_MS = 8000;
 const HIDDEN_PATHS = ["/live", "/login", "/register", "/affiliate"];
 
 export function AffiliatePopup() {
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const pathname = usePathname();
   const t = useTranslations("affiliate");
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (status !== "authenticated" || HIDDEN_PATHS.includes(pathname)) return;
+    // Admins can't activate the affiliate program (see /affiliate page and
+    // the activate API) — no point pitching it to them.
+    if (status !== "authenticated" || session?.user?.isAdmin || HIDDEN_PATHS.includes(pathname)) return;
 
     const dismissedAt = Number(localStorage.getItem(DISMISS_KEY) ?? 0);
     if (Date.now() - dismissedAt < RESHOW_AFTER_MS) return;
@@ -36,7 +38,7 @@ export function AffiliatePopup() {
     return () => {
       cancelled = true;
     };
-  }, [status, pathname]);
+  }, [status, session?.user?.isAdmin, pathname]);
 
   function dismiss() {
     localStorage.setItem(DISMISS_KEY, String(Date.now()));

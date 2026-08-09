@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { isAdminEmail } from "@/lib/admin";
 import { generateAffiliateCode, DEFAULT_COMMISSION_PERCENT } from "@/lib/affiliate";
 
 // Opt-in: any logged-in user can become a partner. Idempotent — if they
@@ -10,6 +11,13 @@ export async function POST() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Sign in required." }, { status: 401 });
+  }
+
+  // Master admins already split 100% of the revenue 50/50 between them —
+  // also letting them collect affiliate commission would double-dip and
+  // create exactly the kind of financial ambiguity they asked to avoid.
+  if (isAdminEmail(session.user.email)) {
+    return NextResponse.json({ error: "Admins can't activate the affiliate program." }, { status: 403 });
   }
 
   const existing = await prisma.affiliate.findUnique({ where: { userId: session.user.id } });
