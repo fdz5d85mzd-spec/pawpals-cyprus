@@ -12,6 +12,7 @@ import { Comments } from "@/components/predictor/Comments";
 import { PickWidget } from "@/components/predictor/PickWidget";
 import { buildMatchNarrative } from "@/lib/narrative";
 import { getStreaks } from "@/lib/streak";
+import { ShareResultButton } from "@/components/predictor/ShareResultButton";
 import type { FormResult } from "@/lib/model";
 
 export const dynamic = "force-dynamic";
@@ -103,6 +104,38 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
           <span>λ {model.lambdaAway.toFixed(2)}</span>
         </div>
       </div>
+
+      {fixture.status === "FINISHED" && fixture.homeGoals != null && fixture.awayGoals != null && (
+        <div className="card p-4 mb-6 flex items-center justify-between gap-3 flex-wrap">
+          {(() => {
+            const pick1x2 =
+              model.winHome >= model.draw && model.winHome >= model.winAway
+                ? "1"
+                : model.winAway >= model.draw && model.winAway >= model.winHome
+                  ? "2"
+                  : "X";
+            const actual1x2 = fixture.homeGoals! > fixture.awayGoals! ? "1" : fixture.homeGoals! === fixture.awayGoals! ? "X" : "2";
+            const modelHit = pick1x2 === actual1x2;
+            const scoreLine = `${fixture.homeGoals}-${fixture.awayGoals}`;
+            return (
+              <>
+                <div className="text-xs">
+                  <span className="text-ink font-bold">
+                    Τελικό: {home.name} {scoreLine} {away.name}
+                  </span>{" "}
+                  <span className={modelHit ? "text-green font-bold" : "text-rose font-bold"}>
+                    {modelHit ? "— το μοντέλο το πέτυχε ✓" : "— το μοντέλο δεν το πέτυχε"}
+                  </span>
+                </div>
+                <ShareResultButton
+                  text={`Το Skorama ${modelHit ? "πέτυχε" : "δεν πέτυχε"} την πρόβλεψη για ${home.name} - ${away.name} (τελικό ${scoreLine}):`}
+                  url={`/match/${fixture.id}`}
+                />
+              </>
+            );
+          })()}
+        </div>
+      )}
 
       <div className="mb-6">
         <PickWidget
