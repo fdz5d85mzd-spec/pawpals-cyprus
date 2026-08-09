@@ -1,11 +1,14 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
-import { LayoutDashboard, Users, Handshake, MessageSquareWarning, Star, Lightbulb } from "lucide-react";
+import { LayoutDashboard, Users, Handshake, MessageSquareWarning, Star, Lightbulb, Wallet, Ticket } from "lucide-react";
 import { authOptions } from "@/lib/auth";
 import { isAdminEmail } from "@/lib/admin";
 import { prisma } from "@/lib/db";
 import { getOverallAccuracy } from "@/lib/accuracy";
+import { getRevenueSummary } from "@/lib/stripe-revenue";
 import { Link } from "@/i18n/navigation";
+import { PromoCodeManager } from "@/components/admin/PromoCodeManager";
+import { MarkPaidButton } from "@/components/admin/MarkPaidButton";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +48,8 @@ export default async function AdminPage() {
     openSuggestions,
     unresolvedHelp,
     reviewAgg,
+    revenue,
+    promoCodes,
   ] = await Promise.all([
     prisma.user.count(),
     prisma.user.count({ where: { createdAt: { gte: startOfToday } } }),
@@ -61,10 +66,13 @@ export default async function AdminPage() {
     prisma.suggestion.count({ where: { status: "OPEN" } }),
     prisma.helpdeskMessage.count({ where: { resolved: false } }),
     prisma.siteReview.aggregate({ _avg: { rating: true }, _count: true }),
+    getRevenueSummary(),
+    prisma.promoCode.findMany({ orderBy: { createdAt: "desc" }, take: 30, include: { redeemedBy: { select: { email: true } } } }),
   ]);
 
   const rankedAffiliates = topAffiliates
     .map((a) => ({
+      id: a.id,
       email: a.user.email,
       code: a.code,
       totalCents: a.commissions.reduce((s, c) => s + c.amountCents, 0),
@@ -80,6 +88,21 @@ export default async function AdminPage() {
         <span className="text-[10px] tracking-[0.2em] uppercase font-mono text-dim">Master Dashboard</span>
       </div>
       <h1 className="font-display text-4xl mb-8 font-extrabold text-ink tracking-tight">Επισκόπηση Skorama</h1>
+
+      <div className="flex items-center gap-2 mb-3">
+        <Wallet size={13} className="text-dim" />
+        <span className="text-xs font-bold text-muted uppercase tracking-wide">Έσοδα (live από Stripe)</span>
+      </div>
+      {revenue.error ? (
+        <div className="card p-4 text-xs text-dim mb-6">Μη διαθέσιμο αυτή τη στιγμή ({revenue.error}). Δες το Stripe Dashboard.</div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
+          <StatCard label="MRR (εκτίμηση)" value={formatEur(revenue.mrrCents)} accent />
+          <StatCard label="Ενεργές συνδρομές" value={revenue.activeSubscriptions} />
+          <StatCard label="Έσοδα σήμερα" value={formatEur(revenue.todayCents)} />
+          <StatCard label="Έσοδα μήνα" value={formatEur(revenue.monthCents)} />
+        </div>
+      )}
 
       <div className="flex items-center gap-2 mb-3">
         <Users size={13} className="text-dim" />
@@ -111,6 +134,7 @@ export default async function AdminPage() {
                 <th className="text-left py-2.5 px-3">Συνεργάτης</th>
                 <th className="text-right py-2.5 px-3">Σύνολο</th>
                 <th className="text-right py-2.5 px-3">Προς πληρωμή</th>
+                <th className="text-right py-2.5 px-3"></th>
               </tr>
             </thead>
             <tbody>
@@ -119,6 +143,7 @@ export default async function AdminPage() {
                   <td className="py-2.5 px-3 text-ink">{a.email}</td>
                   <td className="py-2.5 px-3 text-right font-mono font-bold text-lime">{formatEur(a.totalCents)}</td>
                   <td className="py-2.5 px-3 text-right font-mono text-amber">{formatEur(a.pendingCents)}</td>
+                  <td className="py-2.5 px-3 text-right">{a.pendingCents > 0 && <MarkPaidButton affiliateId={a.id} />}</td>
                 </tr>
               ))}
             </tbody>
@@ -150,16 +175,24 @@ export default async function AdminPage() {
         <Link href="/suggestions" className="underline hover:text-ink">Δες εισηγήσεις</Link>
       </div>
 
+      <div className="flex items-center gap-2 mb-3">
+        <Ticket size={13} className="text-dim" />
+        <span className="text-xs font-bold text-muted uppercase tracking-wide">Promo Codes</span>
+      </div>
+      <div className="mb-6">
+        <PromoCodeManager initialCodes={promoCodes.map((c) => ({ code: c.code, redeemedAt: c.redeemedAt?.toISOString() ?? null, redeemedBy: c.redeemedBy }))} />
+      </div>
+
       <div className="flex items-center gap-2 mb-2">
         <Lightbulb size={13} className="text-dim" />
         <span className="text-xs font-bold text-muted uppercase tracking-wide">Σημείωση</span>
       </div>
       <p className="text-[11px] text-dim leading-relaxed">
-        Τα ακριβή έσοδα (MRR, refunds, chargebacks) φαίνονται στο{" "}
+        Τα έσοδα πάνω είναι εκτίμηση σε πραγματικό χρόνο από το Stripe (MRR υπολογισμένο από ενεργές συνδρομές, έσοδα σήμερα/μήνα από επιτυχημένες χρεώσεις). Για πλήρη λογιστική εικόνα (refunds, chargebacks, φόροι) δες το{" "}
         <a href="https://dashboard.stripe.com" target="_blank" rel="noopener noreferrer" className="text-lime underline">
           Stripe Dashboard
         </a>
-        — αυτός ο πίνακας δείχνει μόνο ό,τι έχουμε αποθηκευμένο στη βάση μας (χρήστες, affiliate commissions, ακρίβεια μοντέλου, tickets).
+        .
       </p>
     </div>
   );
