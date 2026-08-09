@@ -499,6 +499,22 @@ model PredictionResult {
   @@unique([predictionId, market])
 }
 
+// Singleton row (id is always "singleton") holding the one connected
+// TikTok account's OAuth tokens. Unlike Facebook's Page token (a static
+// long-lived value we just keep in an env var), TikTok access tokens
+// expire in ~24h and must be refreshed via the refresh_token (itself
+// good for ~365 days, rotating on every refresh) — see
+// app/api/cron/tiktok-refresh-token/route.ts.
+model TikTokAuth {
+  id               String   @id @default("singleton")
+  openId           String?
+  accessToken      String
+  refreshToken     String
+  accessExpiresAt  DateTime
+  refreshExpiresAt DateTime
+  updatedAt        DateTime @updatedAt
+}
+
 // One row per thing ever auto-posted to a social platform (see
 // app/api/cron/social-post/route.ts and lib/facebook.ts) — purely a
 // dedupe guard so the same correct-prediction fixture, daily pick, or

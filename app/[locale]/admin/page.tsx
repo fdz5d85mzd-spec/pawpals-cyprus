@@ -11,6 +11,7 @@ import { PromoCodeManager } from "@/components/admin/PromoCodeManager";
 import { MarkPaidButton } from "@/components/admin/MarkPaidButton";
 import { CommissionRateEditor } from "@/components/admin/CommissionRateEditor";
 import { AdSubmissionReview } from "@/components/admin/AdSubmissionReview";
+import { TikTokConnectionCard } from "@/components/admin/TikTokConnectionCard";
 
 export const dynamic = "force-dynamic";
 
@@ -53,6 +54,7 @@ export default async function AdminPage() {
     revenue,
     promoCodes,
     pendingAdSubmissions,
+    tiktokAuth,
   ] = await Promise.all([
     prisma.user.count(),
     prisma.user.count({ where: { createdAt: { gte: startOfToday } } }),
@@ -76,6 +78,7 @@ export default async function AdminPage() {
       include: { advertiser: { select: { email: true } } },
       orderBy: { createdAt: "asc" },
     }),
+    prisma.tikTokAuth.findUnique({ where: { id: "singleton" } }),
   ]);
 
   const rankedAffiliates = topAffiliates
@@ -234,6 +237,14 @@ export default async function AdminPage() {
           ))}
         </div>
       )}
+
+      <div className="flex items-center gap-2 mb-3">
+        <Megaphone size={13} className="text-dim" />
+        <span className="text-xs font-bold text-muted uppercase tracking-wide">TikTok</span>
+      </div>
+      <div className="mb-6">
+        <TikTokConnectionCard connected={!!tiktokAuth} />
+      </div>
 
       <div className="flex items-center gap-2 mb-3">
         <Ticket size={13} className="text-dim" />
