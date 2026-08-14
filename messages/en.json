@@ -262,6 +262,8 @@
     "searchPlaceholder": "Search team or league…",
     "searchLabel": "Search team or league",
     "teamResults": "Teams",
+    "findTeam": "Find your team",
+    "teamSearchPlaceholder": "Type a team name…",
     "clearSearch": "Clear search",
     "allLeagues": "All leagues",
     "all": "All",

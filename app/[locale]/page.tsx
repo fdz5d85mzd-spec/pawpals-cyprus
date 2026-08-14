@@ -16,6 +16,7 @@ import { Mascot } from "@/components/predictor/Mascot";
 import { getOverallAccuracy } from "@/lib/accuracy";
 import { AdSlotBoxes } from "@/components/AdSlotBoxes";
 import { FixtureExplorer, type FixtureExplorerItem, type TeamSearchItem } from "@/components/predictor/FixtureExplorer";
+import { TeamFinder } from "@/components/predictor/TeamFinder";
 
 const AD_SLOT_KEY = "homepage-sidebar";
 
@@ -133,6 +134,7 @@ export default async function TodayPage({ params }: { params: Promise<{ locale: 
               {t("titleLine1")}<br /><span className="text-lime">{t("titleHighlight")}</span>
             </h1>
             <p className="mt-5 max-w-xl text-sm leading-relaxed text-muted animate-fade-up sm:text-base">{t("subtitle")}</p>
+            <TeamFinder teams={teamSearchItems} />
             <div className="mt-6 flex flex-wrap gap-3 animate-fade-up">
               <a href="#analyses" className="btn-primary !rounded-full !px-5">{tu("seeAnalyses")} <ArrowRight size={13} /></a>
               <Link href="/history" className="btn-secondary !rounded-full !px-5"><ShieldCheck size={13} /> {tu("accuracyHistory")}</Link>

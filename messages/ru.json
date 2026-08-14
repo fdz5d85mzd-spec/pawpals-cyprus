@@ -262,6 +262,8 @@
     "searchPlaceholder": "Поиск команды или лиги…",
     "searchLabel": "Поиск команды или лиги",
     "teamResults": "Команды",
+    "findTeam": "Найдите свою команду",
+    "teamSearchPlaceholder": "Введите название команды…",
     "clearSearch": "Очистить поиск",
     "allLeagues": "Все лиги",
     "all": "Все",
