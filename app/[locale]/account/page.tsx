@@ -11,6 +11,7 @@ import { PushNotificationToggle } from "@/components/PushNotificationToggle";
 import { generateReferralCode } from "@/lib/referral";
 import { getBadges } from "@/lib/badges";
 import { BadgeRow } from "@/components/BadgeRow";
+import { PersonalizationPreferences } from "@/components/PersonalizationPreferences";
 
 export const dynamic = "force-dynamic";
 
@@ -19,11 +20,12 @@ export default async function AccountPage() {
   if (!session?.user?.id) redirect("/login");
   const t = await getTranslations("leaderboard");
 
-  const [subscription, user, totalPicks, hitPicks] = await Promise.all([
+  const [subscription, user, totalPicks, hitPicks, leagues] = await Promise.all([
     prisma.subscription.findUnique({ where: { userId: session.user.id } }),
     prisma.user.findUnique({ where: { id: session.user.id }, include: { rewardsEarned: true } }),
     prisma.userPick.count({ where: { userId: session.user.id, hit: { not: null } } }),
     prisma.userPick.count({ where: { userId: session.user.id, hit: true } }),
+    prisma.league.findMany({ select: { name: true }, distinct: ["name"], orderBy: { name: "asc" }, take: 20 }),
   ]);
   const isPro = subscription?.plan === "PRO" && subscription.status === "active";
   const isTrialing = !!session.user.trialEndsAt;
@@ -61,6 +63,9 @@ export default async function AccountPage() {
       )}
       <div className="mb-4">
         <PushNotificationToggle />
+      </div>
+      <div className="mb-4">
+        <PersonalizationPreferences leagues={leagues.map((league) => league.name)} initialEmailOptIn={user?.emailUpdatesOptIn ?? false} />
       </div>
       {!isPro && (
         <div className="card p-5 mb-4">

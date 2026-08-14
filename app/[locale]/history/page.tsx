@@ -1,8 +1,9 @@
-import { Gauge } from "lucide-react";
+import { Gauge, Scale } from "lucide-react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { prisma } from "@/lib/db";
 import { getOverallAccuracy } from "@/lib/accuracy";
 import { Eyebrow } from "@/components/predictor/ui";
+import { buildCalibration } from "@/lib/calibration";
 
 // Public, non-personalized — updates via settle-results (every 2h), so a
 // short revalidate window is imperceptibly stale but avoids a full
@@ -12,8 +13,11 @@ export const revalidate = 60;
 export default async function HistoryPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations("history");
-  const tMarkets = await getTranslations("markets");
+  const [t, tMarkets, tu] = await Promise.all([
+    getTranslations("history"),
+    getTranslations("markets"),
+    getTranslations("upgrade"),
+  ]);
   const MARKET_LABELS: Record<string, string> = {
     ONE_X_TWO: tMarkets("oneXTwo"),
     DOUBLE_CHANCE: tMarkets("doubleChance"),
@@ -40,6 +44,7 @@ export default async function HistoryPage({ params }: { params: Promise<{ locale
     if (r.hit) entry.hits++;
     byMarket.set(r.market, entry);
   }
+  const calibration = buildCalibration(results.map((result) => ({ predictedPct: result.predictedPct, hit: result.hit })));
 
   return (
     <div className="max-w-3xl mx-auto px-5 pt-8 pb-16">
@@ -73,6 +78,36 @@ export default async function HistoryPage({ params }: { params: Promise<{ locale
             ))}
           </div>
         </>
+      )}
+
+      {calibration.length > 0 && (
+        <section className="mb-8" aria-labelledby="calibration-title">
+          <div className="mb-3 flex items-center gap-2">
+            <Scale size={14} className="text-lime" />
+            <h2 id="calibration-title" className="text-xs font-bold uppercase tracking-[0.16em] text-ink">{tu("calibrationTitle")}</h2>
+          </div>
+          <p className="mb-4 text-xs leading-relaxed text-muted">{tu("calibrationBody")}</p>
+          <div className="card overflow-x-auto p-4">
+            <div className="min-w-[520px] space-y-4">
+              {calibration.map((bucket) => (
+                <div key={bucket.label} className="grid grid-cols-[64px_1fr_48px] items-center gap-3">
+                  <div className="text-[10px] font-mono text-muted">{bucket.label}</div>
+                  <div>
+                    <div className="relative h-7 overflow-hidden rounded-lg bg-surface2">
+                      <div className="absolute inset-y-0 left-0 bg-lime/20" style={{ width: `${bucket.expected}%` }} />
+                      <div className="absolute bottom-0 left-0 h-1.5 bg-lime" style={{ width: `${bucket.actual}%` }} />
+                      <div className="relative flex h-full items-center justify-between px-2 text-[9px] font-mono">
+                        <span className="text-muted">{tu("expected", { value: bucket.expected })}</span>
+                        <span className="font-bold text-ink">{tu("actual", { value: bucket.actual })}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className={`text-right text-[10px] font-bold font-mono ${Math.abs(bucket.gap) <= 8 ? "text-green" : "text-amber"}`}>{bucket.gap > 0 ? "+" : ""}{bucket.gap}%</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
       )}
 
       <Eyebrow>{t("recentTitle")}</Eyebrow>

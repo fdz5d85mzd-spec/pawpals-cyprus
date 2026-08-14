@@ -1,5 +1,6 @@
-import { BookOpen } from "lucide-react";
+import { BookOpen, CheckCircle2, Database, ShieldAlert } from "lucide-react";
 import { Link } from "@/i18n/navigation";
+import { getTranslations } from "next-intl/server";
 
 export const revalidate = 3600;
 
@@ -14,7 +15,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-export default function GuidePage() {
+export default async function GuidePage() {
+  const tm = await getTranslations("methodUpgrade");
   return (
     <div className="max-w-2xl mx-auto px-5 pt-8 pb-16">
       <div className="flex items-center gap-2 mb-2">
@@ -42,6 +44,29 @@ export default function GuidePage() {
               Ιστορικό
             </Link>
             .
+          </p>
+        </Section>
+
+        <Section title={tm("title")}>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="rounded-xl border border-white/[0.07] bg-white/[0.025] p-3">
+              <Database size={15} className="mb-2 text-lime" />
+              <b className="text-xs text-ink">{tm("sourceTitle")}</b>
+              <p className="mt-1 text-[11px]">{tm("sourceBody")}</p>
+            </div>
+            <div className="rounded-xl border border-white/[0.07] bg-white/[0.025] p-3">
+              <CheckCircle2 size={15} className="mb-2 text-green" />
+              <b className="text-xs text-ink">{tm("modelTitle")}</b>
+              <p className="mt-1 text-[11px]">{tm("modelBody")}</p>
+            </div>
+            <div className="rounded-xl border border-white/[0.07] bg-white/[0.025] p-3">
+              <ShieldAlert size={15} className="mb-2 text-amber" />
+              <b className="text-xs text-ink">{tm("limitationsTitle")}</b>
+              <p className="mt-1 text-[11px]">{tm("limitationsBody")}</p>
+            </div>
+          </div>
+          <p>
+            {tm("caveat")} <Link href="/history" className="font-bold text-lime">→</Link>
           </p>
         </Section>
 

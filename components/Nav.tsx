@@ -32,26 +32,29 @@ export function Nav() {
   ];
 
   return (
-    <header className="sticky top-0 z-40 border-b-2 border-lime bg-bg">
-      <div className="max-w-6xl mx-auto px-5 h-14 flex items-center justify-between gap-3">
+    <header className="sticky top-0 z-40 border-b border-white/10 bg-bg/90 backdrop-blur-xl">
+      <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between gap-3">
         <Link href="/" className="flex items-center gap-2 shrink-0" onClick={() => setOpen(false)}>
-          <span className="w-7 h-7 bg-lime text-bg font-display font-extrabold text-sm flex items-center justify-center">
+          <span className="w-9 h-9 rounded-xl bg-lime text-bg font-display font-extrabold text-sm flex items-center justify-center shadow-glow">
             S
           </span>
-          <span className="font-display font-extrabold text-sm text-ink tracking-tight uppercase">Skorama</span>
+          <span>
+            <span className="block font-display font-extrabold text-sm text-ink tracking-tight uppercase">Skorama</span>
+            <span className="hidden xl:block text-[8px] font-mono uppercase tracking-[0.18em] text-dim">Football intelligence</span>
+          </span>
         </Link>
 
         {/* Phones don't have room for 5 links + logo + button on one line —
             this collapses into a dropdown below `sm` instead of fighting for
             space with horizontal scroll (which just reads as broken). */}
-        <nav className="hidden sm:flex items-center gap-4">
+        <nav className="hidden xl:flex items-center gap-3 rounded-full border border-white/[0.07] bg-white/[0.025] px-3">
           {LINKS.map((l) => {
             const active = pathname === l.href;
             return (
               <Link
                 key={l.href}
                 href={l.href}
-                className={`text-[11px] font-bold uppercase tracking-wide px-1 py-1.5 whitespace-nowrap border-b-2 transition-colors ${
+                className={`text-[10px] font-bold uppercase tracking-wide px-1 py-2.5 whitespace-nowrap border-b-2 transition-colors ${
                   active ? "text-lime border-lime" : "text-muted border-transparent hover:text-ink"
                 }`}
               >
@@ -62,7 +65,7 @@ export function Nav() {
         </nav>
 
         <div className="flex items-center gap-3 shrink-0">
-          <div className="hidden sm:flex items-center gap-3">
+          <div className="hidden xl:flex items-center gap-3">
             <LanguageSwitcher locale={locale} pathname={pathname} />
             <div className="text-xs font-mono">
               {session ? (
@@ -79,7 +82,7 @@ export function Nav() {
 
           <button
             onClick={() => setOpen((v) => !v)}
-            className="sm:hidden text-ink p-1"
+            className="xl:hidden rounded-xl border border-white/10 bg-white/[0.04] p-2 text-ink"
             aria-label={open ? t("closeMenu") : t("openMenu")}
           >
             {open ? <X size={22} /> : <Menu size={22} />}
@@ -88,7 +91,7 @@ export function Nav() {
       </div>
 
       {open && (
-        <nav className="sm:hidden border-t border-border/60 bg-bg px-5 py-3 flex flex-col">
+        <nav className="xl:hidden border-t border-border/60 bg-bg/95 px-5 py-3 flex flex-col backdrop-blur-xl">
           {LINKS.map((l) => {
             const active = pathname === l.href;
             return (

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
-import { ChevronLeft, Clock } from "lucide-react";
+import { ChevronLeft, Clock, Database, LockKeyhole } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { authOptions } from "@/lib/auth";
 import { presentPrediction, hoursUntil } from "@/lib/present";
@@ -14,6 +14,8 @@ import { buildMatchNarrative } from "@/lib/narrative";
 import { getStreaks } from "@/lib/streak";
 import { ShareResultButton } from "@/components/predictor/ShareResultButton";
 import type { FormResult } from "@/lib/model";
+import { ModelExplanation } from "@/components/predictor/ModelExplanation";
+import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +25,7 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
   if (Number.isNaN(fixtureId)) notFound();
 
   const session = await getServerSession(authOptions);
+  const tu = await getTranslations("upgrade");
 
   const [fixture, plan, comments, userPick] = await Promise.all([
     prisma.fixture.findUnique({
@@ -68,11 +71,11 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
         <ChevronLeft size={14} /> Πίσω
       </Link>
 
-      <div className="flex items-center gap-1.5 text-[10px] font-mono mb-4 text-amber">
+      <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-[10px] font-mono text-muted">
         <Clock size={11} />
-        <span>
-          Κλείδωμα πρόγνωσης σε {hrs}ω{fixture.venue ? ` · ${fixture.venue}` : ""}
-        </span>
+        <span>Σε {hrs}ω{fixture.venue ? ` · ${fixture.venue}` : ""}</span>
+        <span className="inline-flex items-center gap-1 text-amber"><LockKeyhole size={11} /> {tu("predictionLocked", { date: fixture.prediction.frozenAt.toLocaleString(undefined, { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) })}</span>
+        <span className="inline-flex items-center gap-1"><Database size={11} /> {tu("source")}</span>
       </div>
 
       <div className="card p-5 mb-6">
@@ -104,6 +107,28 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
           <span>λ {model.lambdaAway.toFixed(2)}</span>
         </div>
       </div>
+
+      <ModelExplanation
+        home={{
+          name: home.name,
+          form: home.form as FormResult[],
+          leaguePos: home.leaguePos,
+          avgGoalsFor: home.avgGoalsFor,
+          avgGoalsAgainst: home.avgGoalsAgainst,
+          playerStatuses: home.keyPlayers.map((player) => player.status),
+        }}
+        away={{
+          name: away.name,
+          form: away.form as FormResult[],
+          leaguePos: away.leaguePos,
+          avgGoalsFor: away.avgGoalsFor,
+          avgGoalsAgainst: away.avgGoalsAgainst,
+          playerStatuses: away.keyPlayers.map((player) => player.status),
+        }}
+        lambdaHome={model.lambdaHome}
+        lambdaAway={model.lambdaAway}
+        confidence={model.confidence}
+      />
 
       {fixture.status === "FINISHED" && fixture.homeGoals != null && fixture.awayGoals != null && (
         <div className="card p-4 mb-6 flex items-center justify-between gap-3 flex-wrap">

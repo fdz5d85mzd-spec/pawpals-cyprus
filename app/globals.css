@@ -19,6 +19,10 @@ body {
   color: #fafafa;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 ::selection {
   background: rgba(255, 200, 0, 0.35);
   color: #0b0b0d;
@@ -46,6 +50,33 @@ body {
   }
   .card-interactive:hover::before {
     @apply opacity-100;
+  }
+
+  .trust-stat {
+    @apply flex min-h-[88px] flex-col justify-between rounded-2xl border border-white/[0.07] bg-white/[0.035] p-3 transition-colors hover:border-lime/25 hover:bg-white/[0.05] sm:min-h-[104px] sm:p-3.5;
+  }
+
+  .trust-stat strong {
+    @apply mt-2 font-display text-lg font-extrabold tracking-tight text-ink sm:mt-3 sm:text-xl;
+  }
+
+  .trust-stat span {
+    @apply mt-1 text-[10px] uppercase tracking-wide text-dim;
+  }
+
+  .match-card {
+    content-visibility: auto;
+    contain-intrinsic-size: 420px;
+    @apply relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:border-lime/35 hover:shadow-[0_24px_60px_-28px_rgba(255,200,0,0.35)];
+  }
+
+  .match-card::before {
+    content: "";
+    @apply absolute inset-x-0 top-0 h-px origin-left scale-x-0 bg-gradient-to-r from-transparent via-lime to-transparent transition-transform duration-300;
+  }
+
+  .match-card:hover::before {
+    @apply scale-x-100;
   }
 
   .btn-primary {
