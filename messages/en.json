@@ -316,7 +316,13 @@
     "weeklyRecap": "Weekly recap",
     "weeklyRecapBody": "Model performance and your own predictions.",
     "matchNotifications": "Match notifications",
-    "matchNotificationsBody": "Enable these separately using the notifications button above."
+    "matchNotificationsBody": "Enable these separately using the notifications button above.",
+    "assistantLabel": "Skor assistant",
+    "assistantOnline": "Online",
+    "assistantRoles": "Assistant roles",
+    "roleAnalyst": "Analyst",
+    "roleGuide": "Guide",
+    "roleAlerts": "Alerts"
   },
   "methodUpgrade": {
     "title": "Methodology and data sources",

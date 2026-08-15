@@ -316,7 +316,13 @@
     "weeklyRecap": "Седмичен обзор",
     "weeklyRecapBody": "Представяне на модела и твоите прогнози.",
     "matchNotifications": "Известия за мачове",
-    "matchNotificationsBody": "Активират се отделно от бутона за известия по-горе."
+    "matchNotificationsBody": "Активират се отделно от бутона за известия по-горе.",
+    "assistantLabel": "Асистент Skor",
+    "assistantOnline": "Активен",
+    "assistantRoles": "Роли на асистента",
+    "roleAnalyst": "Анализатор",
+    "roleGuide": "Ръководство",
+    "roleAlerts": "Известия"
   },
   "methodUpgrade": {
     "title": "Методология и източници",

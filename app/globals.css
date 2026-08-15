@@ -19,6 +19,24 @@ body {
   color: #fafafa;
 }
 
+@keyframes mascot-assistant-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+@keyframes mascot-assistant-pulse {
+  0%, 100% { transform: scale(.86); opacity: .25; }
+  50% { transform: scale(1.08); opacity: .65; }
+}
+
+.mascot-assistant__face { animation: mascot-assistant-float 3.2s ease-in-out infinite; }
+.mascot-assistant__pulse { animation: mascot-assistant-pulse 2.8s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mascot-assistant__face,
+  .mascot-assistant__pulse { animation: none; }
+}
+
 html {
   scroll-behavior: smooth;
 }

@@ -157,9 +157,9 @@ export default async function TodayPage({ params }: { params: Promise<{ locale: 
               <div className="trust-stat"><Sigma size={15} className="text-amber" /><strong>Dixon–Coles</strong><span>{tu("publishedModel")}</span></div>
             </div>
 
-            <div className="mt-3 hidden items-center gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.025] px-4 py-3 sm:flex">
-              <Mascot className="h-14 w-12 shrink-0" />
-              <div className="min-w-0">
+            <div className="mt-3 grid gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.025] px-4 py-3 sm:grid-cols-[minmax(210px,auto)_1fr] sm:items-center">
+              <Mascot />
+              <div className="min-w-0 border-t border-white/[0.07] pt-3 sm:border-l sm:border-t-0 sm:pl-3 sm:pt-0">
                 <p className="text-[10px] leading-relaxed text-muted">{tu("lockedExplanation")}</p>
                 <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[10px] font-mono text-dim">
                   <span>{tu("source")}</span>

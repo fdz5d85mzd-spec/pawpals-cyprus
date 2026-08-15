@@ -316,7 +316,13 @@
     "weeklyRecap": "Итоги недели",
     "weeklyRecapBody": "Результаты модели и ваши прогнозы.",
     "matchNotifications": "Уведомления о матчах",
-    "matchNotificationsBody": "Включаются отдельно кнопкой уведомлений выше."
+    "matchNotificationsBody": "Включаются отдельно кнопкой уведомлений выше.",
+    "assistantLabel": "Помощник Skor",
+    "assistantOnline": "Онлайн",
+    "assistantRoles": "Роли помощника",
+    "roleAnalyst": "Аналитик",
+    "roleGuide": "Гид",
+    "roleAlerts": "Уведомления"
   },
   "methodUpgrade": {
     "title": "Методология и источники данных",
